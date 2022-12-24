@@ -27,3 +27,9 @@ class UserListView(APIView):
     def post(self, request):
         # register a new user
         pass
+
+
+class FriendsListView(APIView):
+    def get(self, request):
+        # the user's friend list
+        pass

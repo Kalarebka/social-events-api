@@ -56,11 +56,7 @@ class LocationListView(APIView):
 
 class LocationDetailView(APIView):
     def get(self, request):
-        # current user's saved locations
-        pass
-
-    def post(self, request):
-        # add a location to user's saved locations
+        # one location info
         pass
 
 

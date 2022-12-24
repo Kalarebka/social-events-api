@@ -13,7 +13,7 @@ class Location(models.Model):
     country = models.CharField(max_length=32, blank=True, null=True)
     city = models.CharField(max_length=32, blank=True, null=True)
     street = models.CharField(max_length=32, blank=True, null=True)
-    street_number = models.CharField(max_length=8)
+    street_number = models.CharField(max_length=8, blank=True, null=True)
     zip_code = models.CharField(max_length=10, blank=True, null=True)
 
 
