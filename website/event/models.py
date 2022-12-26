@@ -1,8 +1,8 @@
 from datetime import datetime
 
+from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import models
-from user.models import User, UserGroup
 
 
 class Location(models.Model):
@@ -15,6 +15,7 @@ class Location(models.Model):
     street = models.CharField(max_length=32, blank=True, null=True)
     street_number = models.CharField(max_length=8, blank=True, null=True)
     zip_code = models.CharField(max_length=10, blank=True, null=True)
+    users_favorites = models.ManyToManyField(settings.AUTH_USER_MODEL)
 
 
 class Event(models.Model):
@@ -23,11 +24,12 @@ class Event(models.Model):
         GROUP = "group"
         PUBLIC = "public"
 
-    event_access = models.CharField(choices=EventAccess.choices)
+    event_access = models.CharField(choices=EventAccess.choices, max_length=8)
     name = models.CharField(max_length=128)
     description = models.TextField()
     time_created = models.DateTimeField(auto_now_add=True)
-    organisers = models.ManyToManyField(User) # needs some way to manage no organisers
+    organisers = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name="events_organiser") # needs some way to manage no organisers
+    participants = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name="events_participant")
     start_time = models.DateTimeField()
     end_time = models.DateTimeField()
     location = models.ForeignKey(

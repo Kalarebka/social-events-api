@@ -3,8 +3,6 @@ from typing import List
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 
-from event.models import Event, Location
-
 from .user_manager import CustomUserManager
 
 
@@ -16,9 +14,7 @@ class User(AbstractUser):
     profile_picture = models.ImageField(
         default="default.jpg", upload_to="profile_images", blank=True
     )
-    events = models.ManyToManyField(Event)
     friends = models.ManyToManyField("self")
-    favorite_locations = models.ManyToManyField(Location)
 
     objects = CustomUserManager()
 
@@ -34,28 +30,16 @@ class UserGroup(models.Model):
     )
 
 
-class Message(models.Model):
-    sender = models.ForeignKey(
-        User, on_delete=models.SET_NULL, null=True, related_name="sent_messages"
-    )
-    receiver = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name="received_messages"
-    )
-    title = models.CharField(max_length=258, default="No title")
-    content = models.TextField(default="")
-    date_sent = models.DateTimeField(auto_now_add=True)
-    read_status = models.BooleanField(default=False)
-
 
 class Invitation(models.Model):
     sender = models.ForeignKey(
         User,
         on_delete=models.SET_NULL,
         null=True,
-        related_name="sent_friend_invitations",
+        related_name="%(app_label)s_%(class)s_sent",
     )
     receiver = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name="received_friend_invitations"
+        User, on_delete=models.CASCADE, related_name="%(app_label)s_%(class)s_received"
     )
     confirmed = models.BooleanField(default=False)
 
@@ -64,9 +48,8 @@ class Invitation(models.Model):
         pass
 
     def confirm_invitation(self):
-        # can be confirmed by the receiver
-        # only then: add the users to each other's friends
         pass
+
 
     class Meta:
         abstract = True  # will not be used to create a db table
