@@ -2,7 +2,7 @@
 
 from rest_framework.views import APIView
 
-from user.models import User
+
 from .models import Event, Location
 
 
@@ -21,7 +21,7 @@ class EventDetailView(APIView):
         # Get one event
         pass
 
-    def patch(self, request, pk):
+    def put(self, request, pk):
         # Edit the event (organiser only)
         pass
 

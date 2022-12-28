@@ -23,4 +23,5 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path("event", include("event.urls")),
     path("auth/", include("django.contrib.auth.urls")),
+    path("messagebox", include("messagebox.urls"))
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

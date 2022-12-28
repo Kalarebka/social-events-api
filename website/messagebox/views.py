@@ -1,3 +1,9 @@
-from django.shortcuts import render
+from rest_framework.views import APIView
 
-# Create your views here.
+class ReceivedMessagesView(APIView):
+    def get(self, request):
+        # return list of received messages sorted by date (newest first), should be paginated
+        pass
+
+    def post(self, request):
+        pass
