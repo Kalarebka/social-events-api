@@ -1,11 +1,11 @@
 from django.urls import path
 
-from .views import EventListView, EventDetailView, EventUsersView, EventInviteView, CalendarView, LocationListView, LocationDetailView
+from .views import EventView, EventUsersView, EventInviteView, CalendarView, LocationListView, LocationDetailView
 
 app_name = "event"
 urlpatterns = [
-    path("", EventListView.as_view()),
-    path("<int:pk>/", EventDetailView.as_view()),
+    path("", EventView.as_view()),
+    path("<int:pk>/", EventView.as_view()),
     path("<int:pk>/userlist/", EventUsersView.as_view()),
     path("<int:pk>/invite/", EventInviteView.as_view()),
     path("calendar/", CalendarView.as_view()),

@@ -6,19 +6,18 @@ from rest_framework.views import APIView
 from .models import Event, Location
 
 
-class EventListView(APIView):
-    def get(self, request):
-        # Get all available events (public and group events)
+
+class EventView(APIView):
+    def get(self, request, *args,**kwargs):
+        pk = kwargs.get("pk")
+        if not pk:
+            ## Get event list
+            pass
+        # Get one event
         pass
 
     def post(self, request):
         # Create an event
-        pass
-
-
-class EventDetailView(APIView):
-    def get(self, request, pk):
-        # Get one event
         pass
 
     def put(self, request, pk):
