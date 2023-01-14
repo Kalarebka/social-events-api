@@ -4,6 +4,6 @@ from .views import ReceivedMessagesView
 
 
 app_name = "messagebox"
-urlpatterns = {
+urlpatterns = [
     path("", ReceivedMessagesView.as_view())
-}
+]

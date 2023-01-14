@@ -3,10 +3,8 @@ from typing import List
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 
-from .user_manager import CustomUserManager
 
-
-class User(AbstractUser):
+class CustomUser(AbstractUser):
     email = models.EmailField("email address", unique=True)
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS: List[str] = ["username"]
@@ -16,30 +14,29 @@ class User(AbstractUser):
     )
     friends = models.ManyToManyField("self")
 
-    objects = CustomUserManager()
-
     def __str__(self):
         return self.username
 
 
 class UserGroup(models.Model):
     name: models.TextField = models.TextField(max_length=128)
-    administrators: models.ManyToManyField = models.ManyToManyField(User)
+    administrators: models.ManyToManyField = models.ManyToManyField(CustomUser)
     members: models.ManyToManyField = models.ManyToManyField(
-        User, related_name="user_groups"
+        CustomUser, related_name="user_groups"
     )
-
 
 
 class Invitation(models.Model):
     sender = models.ForeignKey(
-        User,
+        CustomUser,
         on_delete=models.SET_NULL,
         null=True,
         related_name="%(app_label)s_%(class)s_sent",
     )
     receiver = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name="%(app_label)s_%(class)s_received"
+        CustomUser,
+        on_delete=models.CASCADE,
+        related_name="%(app_label)s_%(class)s_received",
     )
     confirmed = models.BooleanField(default=False)
 
@@ -50,13 +47,11 @@ class Invitation(models.Model):
     def confirm_invitation(self):
         pass
 
-
     class Meta:
         abstract = True  # will not be used to create a db table
 
 
 class FriendInvitation(Invitation):
-    # how to change related_name for sender and receiver querysets?
     pass
 
 

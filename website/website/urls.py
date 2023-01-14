@@ -19,9 +19,11 @@ from django.contrib import admin
 from django.urls import include, path
 
 urlpatterns = [
-    path("user/", include("user.urls")),
+    path("users/", include("user.urls")),
     path("admin/", admin.site.urls),
-    path("event", include("event.urls")),
-    path("auth/", include("django.contrib.auth.urls")),
-    path("messagebox", include("messagebox.urls"))
+    path("events/", include("event.urls")),
+    path("messagebox/", include("messagebox.urls")),
+    path(
+        "auth/", include("rest_framework.urls")
+    ),  # for now login and logout in html browsable api
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

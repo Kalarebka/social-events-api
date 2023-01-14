@@ -41,9 +41,12 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    # DRF
     "rest_framework",
-    "user",
-    "event",
+    "rest_framework.authtoken",
+    # Local
+    "users",
+    "events",
     "messagebox",
 ]
 
@@ -153,3 +156,10 @@ MEDIA_URL = "/media/"
 
 # Use custom user model
 AUTH_USER_MODEL = "user.User"
+
+
+REST_FRAMEWORK = {
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "rest_framework.authentication.TokenAuthentication",
+    ]
+}

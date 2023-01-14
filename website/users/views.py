@@ -1,8 +1,7 @@
 from rest_framework.views import APIView
 
-from event.models import Event, Location
-from .models import User
-
+from events.models import Event, Location
+from .models import CustomUser
 
 
 class UserDetailView(APIView):

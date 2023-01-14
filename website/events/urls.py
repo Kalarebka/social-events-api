@@ -1,8 +1,15 @@
 from django.urls import path
 
-from .views import EventView, EventUsersView, EventInviteView, CalendarView, LocationListView, LocationDetailView
+from .views import (
+    EventView,
+    EventUsersView,
+    EventInviteView,
+    CalendarView,
+    LocationListView,
+    LocationDetailView,
+)
 
-app_name = "event"
+app_name = "events"
 urlpatterns = [
     path("", EventView.as_view()),
     path("<int:pk>/", EventView.as_view()),

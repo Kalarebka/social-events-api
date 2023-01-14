@@ -1,18 +1,16 @@
-# event.views
-
 from rest_framework.views import APIView
+from rest_framework.response import Response
 
 
 from .models import Event, Location
 
 
-
 class EventView(APIView):
-    def get(self, request, *args,**kwargs):
+    def get(self, request, *args, **kwargs):
         pk = kwargs.get("pk")
         if not pk:
-            ## Get event list
-            pass
+            content = {"app status": "working"}
+            return Response(content)
         # Get one event
         pass
 
