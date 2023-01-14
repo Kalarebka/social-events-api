@@ -155,11 +155,12 @@ MEDIA_ROOT = MEDIA_DIR
 MEDIA_URL = "/media/"
 
 # Use custom user model
-AUTH_USER_MODEL = "user.User"
+AUTH_USER_MODEL = "users.CustomUser"
 
 
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
+        "rest_framework.authentication.SessionAuthentication",
         "rest_framework.authentication.TokenAuthentication",
     ]
 }
