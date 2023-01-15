@@ -23,7 +23,7 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path("events/", include("events.urls")),
     path("messagebox/", include("messagebox.urls")),
-    path(
-        "auth/", include("rest_framework.urls")
-    ),  # for now login and logout in html browsable api
+    path("auth/", include("rest_framework.urls")),  # login/logout for browsable API
+    path("rest-auth/", include("dj_rest_auth.urls")),
+    path("register/", include("dj_rest_auth.registration.urls")),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

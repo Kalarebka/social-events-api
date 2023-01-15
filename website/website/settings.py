@@ -41,9 +41,15 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    # DRF
+    "django.contrib.sites",
+    # 3rd party
     "rest_framework",
     "rest_framework.authtoken",
+    "dj_rest_auth",
+    "dj_rest_auth.registration",
+    "allauth",
+    "allauth.account",
+    "allauth.socialaccount",
     # Local
     "users",
     "events",
@@ -73,6 +79,7 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+                "django.template.context_processors.request",
             ],
         },
     },
@@ -154,6 +161,7 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 MEDIA_ROOT = MEDIA_DIR
 MEDIA_URL = "/media/"
 
+
 # Use custom user model
 AUTH_USER_MODEL = "users.CustomUser"
 
@@ -164,3 +172,15 @@ REST_FRAMEWORK = {
         "rest_framework.authentication.TokenAuthentication",
     ]
 }
+
+# During development and testing output emails to console
+EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+
+# for allauth
+SITE_ID = 1
+
+# django-allauth config
+ACCOUNT_USERNAME_REQUIRED = False
+ACCOUNT_AUTHENTICATION_METHOD = "email"
+ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_UNIQUE_EMAIL = True
