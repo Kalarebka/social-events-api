@@ -3,6 +3,7 @@ django-allauth==0.52.0
 django-environ==0.9.0
 djangorestframework==3.14.0
 dj-rest-auth==2.2.7
+drf-spectacular==0.25.1
 celery[redis]==5.2.7
 psycopg2-binary==2.9.5
 Pillow==9.3.0
