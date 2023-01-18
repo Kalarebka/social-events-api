@@ -1,35 +1,31 @@
-from rest_framework.views import APIView
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-
+from rest_framework.views import APIView
+from rest_framework.viewsets import ModelViewSet
 
 from .models import Event, Location
+from .permissions import EventPermissions
+from .serializers import EventSerializer
 
 
-class EventView(APIView):
-    def get(self, request, *args, **kwargs):
-        pk = kwargs.get("pk")
-        if not pk:
-            content = {"app status": "working"}
-            return Response(content)
-        # Get one event
-        pass
+class EventViewSet(ModelViewSet):
+    serializer_class = EventSerializer
+    permission_classes = [IsAuthenticated, EventPermissions]
+    queryset = Event.objects.all()
 
-    def post(self, request):
-        # Create an event
-        pass
-
-    def put(self, request, pk):
-        # Edit the event (organiser only)
-        pass
-
-    def delete(self, request, pk):
-        # Organiser only
-        pass
+    def get_queryset(self):
+        # ? but user should also be able to see events he's invited to
+        return self.queryset.exclude(event_access="invitation")
 
 
-class EventUsersView(APIView):
+class EventParticipantsView(APIView):
     def get(self, request, pk):
-        # get all users that will attend the event
+        # get all event participants
+        pass
+
+    def post(self, request, pk):
+        # add current user to event participants
+        # user can join public events and event of groups he's a part of without invitation
         pass
 
 
@@ -40,7 +36,6 @@ class EventInviteView(APIView):
         pass
 
 
-# maybe this should be under user/locations??
 class LocationListView(APIView):
     def get(self, request):
         # current user's saved locations

@@ -21,3 +21,8 @@ class Message(models.Model):
 
     def __str__(self):
         return self.title
+
+
+class MessageTemplate(models.Model):
+    # templates to be used when creating auto messages
+    pass

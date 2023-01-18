@@ -4,10 +4,6 @@ from .models import Event, Location
 
 
 class EventSerializer(serializers.ModelSerializer):
-
-    # serialize nested models e.g. user = UserSerializer()
-    #
-
     class Meta:
         model = Event
         fields = [
@@ -16,22 +12,18 @@ class EventSerializer(serializers.ModelSerializer):
             "description",
             "time_created",
             "organisers",
+            "participants",
             "start_time",
             "end_time",
             "location",
             "status",
         ]
+        read_only_fields = ["time_created"]
 
-        # https://www.django-rest-framework.org/api-guide/serializers/#saving-instances
-        def create(self, validated_data):
-            # create the Event object with nested models (organisers, location)
-            pass
-
-        def update(self, instance, validated_data):
-            # update the instance
+        def create(self, validated_data, user):
             pass
 
 
 class LocationSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Event
+        model = Location

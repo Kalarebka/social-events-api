@@ -29,7 +29,7 @@ class UserGroup(models.Model):
     )
 
 
-class Invitation(models.Model):
+class AbstractInvitation(models.Model):
     sender = models.ForeignKey(
         CustomUser,
         on_delete=models.SET_NULL,
@@ -45,22 +45,26 @@ class Invitation(models.Model):
 
     def send_invitation(self):
         # Create a message with invitation + notification email (celery)
+        # some function to load message template
+        # send message with messagebox
+        # notification email in celery task
         pass
 
     def confirm_invitation(self):
+        # self.confirmed = True
         pass
 
     class Meta:
         abstract = True  # will not be used to create a db table
 
 
-class FriendInvitation(Invitation):
+class FriendInvitation(AbstractInvitation):
     pass
 
 
-class EventInvitation(Invitation):
+class EventInvitation(AbstractInvitation):
     pass
 
 
-class GroupInvitation(Invitation):
+class GroupInvitation(AbstractInvitation):
     pass
