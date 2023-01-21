@@ -25,4 +25,5 @@ class Message(models.Model):
 
 class MessageTemplate(models.Model):
     # templates to be used when creating auto messages
+    # in db or in text files in static?
     pass

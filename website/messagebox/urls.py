@@ -1,9 +1,10 @@
 from django.urls import path
 
-from .views import ReceivedMessagesView
+from .views import MessageListView, MessageDetailView
 
 
 app_name = "messagebox"
 urlpatterns = [
-    path("", ReceivedMessagesView.as_view())
+    path("", MessageListView.as_view()),
+    path("<int:pk>", MessageDetailView.as_view()),
 ]
