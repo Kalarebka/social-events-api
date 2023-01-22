@@ -15,33 +15,83 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.CreateModel(
-            name='Location',
+            name="Location",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=64)),
-                ('latitude', models.FloatField()),
-                ('longitude', models.FloatField()),
-                ('country', models.CharField(blank=True, max_length=32, null=True)),
-                ('city', models.CharField(blank=True, max_length=32, null=True)),
-                ('street', models.CharField(blank=True, max_length=32, null=True)),
-                ('street_number', models.CharField(blank=True, max_length=8, null=True)),
-                ('zip_code', models.CharField(blank=True, max_length=10, null=True)),
-                ('users_favorites', models.ManyToManyField(to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("name", models.CharField(max_length=64)),
+                ("latitude", models.FloatField()),
+                ("longitude", models.FloatField()),
+                ("country", models.CharField(blank=True, max_length=32, null=True)),
+                ("city", models.CharField(blank=True, max_length=32, null=True)),
+                ("street", models.CharField(blank=True, max_length=32, null=True)),
+                (
+                    "street_number",
+                    models.CharField(blank=True, max_length=8, null=True),
+                ),
+                ("zip_code", models.CharField(blank=True, max_length=10, null=True)),
+                (
+                    "users_favorites",
+                    models.ManyToManyField(to=settings.AUTH_USER_MODEL),
+                ),
             ],
         ),
         migrations.CreateModel(
-            name='Event',
+            name="Event",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('event_access', models.CharField(choices=[('private', 'Private'), ('group', 'Group'), ('public', 'Public')], max_length=8)),
-                ('name', models.CharField(max_length=128)),
-                ('description', models.TextField()),
-                ('time_created', models.DateTimeField(auto_now_add=True)),
-                ('start_time', models.DateTimeField()),
-                ('end_time', models.DateTimeField()),
-                ('location', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='events.location')),
-                ('organisers', models.ManyToManyField(related_name='events_organiser', to=settings.AUTH_USER_MODEL)),
-                ('participants', models.ManyToManyField(related_name='events_participant', to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "event_access",
+                    models.CharField(
+                        choices=[
+                            ("private", "Private"),
+                            ("group", "Group"),
+                            ("public", "Public"),
+                        ],
+                        max_length=8,
+                    ),
+                ),
+                ("name", models.CharField(max_length=128)),
+                ("description", models.TextField()),
+                ("time_created", models.DateTimeField(auto_now_add=True)),
+                ("start_time", models.DateTimeField()),
+                ("end_time", models.DateTimeField()),
+                (
+                    "location",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        to="events.location",
+                    ),
+                ),
+                (
+                    "organisers",
+                    models.ManyToManyField(
+                        related_name="events_organiser", to=settings.AUTH_USER_MODEL
+                    ),
+                ),
+                (
+                    "participants",
+                    models.ManyToManyField(
+                        related_name="events_participant", to=settings.AUTH_USER_MODEL
+                    ),
+                ),
             ],
         ),
     ]

@@ -6,7 +6,7 @@ from .serializers import MessageSerializer
 
 
 class MessageListView(ListCreateAPIView):
-    # GET: return list of received messages sorted by date (newest first)
+    # GET: return list of received messages sorted by date (newest first) (sort order set in model)
     # query_params.category: sent/received
     # POST: create a new message
     serializer_class = MessageSerializer
@@ -16,9 +16,13 @@ class MessageListView(ListCreateAPIView):
     #     # return current user's received/sent messages
     #     if self.request.query_params
 
+    def perform_create(self, serializer):
+        # add extra information to save() in create() function
+        serializer.save(sender=self.request.user)
+
 
 class MessageDetailView(RetrieveDestroyAPIView):
     # GET - single message details
-    # DELETE - delete the message (receiver only)
+    # DELETE - delete the message (receiver only or both?)
     queryset = Message.objects.all()
     serializer_class = MessageSerializer

@@ -19,6 +19,10 @@ class Message(models.Model):
     date_sent = models.DateTimeField(auto_now_add=True)
     read_status = models.BooleanField(default=False)
 
+    class Meta:
+        # Order by date_sent descending
+        ordering = ["-date_sent"]
+
     def __str__(self):
         return self.title
 

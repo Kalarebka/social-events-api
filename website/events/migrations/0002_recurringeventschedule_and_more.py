@@ -9,42 +9,67 @@ class Migration(migrations.Migration):
 
     dependencies = [
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
-        ('events', '0001_initial'),
+        ("events", "0001_initial"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='RecurringEventSchedule',
+            name="RecurringEventSchedule",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('interval', models.IntegerField()),
-                ('time_unit', models.CharField(max_length=16)),
-                ('start_datetime', models.DateTimeField()),
-                ('end_datetime', models.DateTimeField()),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("interval", models.IntegerField()),
+                ("time_unit", models.CharField(max_length=16)),
+                ("start_datetime", models.DateTimeField()),
+                ("end_datetime", models.DateTimeField()),
             ],
         ),
         migrations.RemoveField(
-            model_name='location',
-            name='users_favorites',
+            model_name="location",
+            name="users_favorites",
         ),
         migrations.AddField(
-            model_name='event',
-            name='status',
-            field=models.CharField(choices=[('planned', 'Planned'), ('in progress', 'In Progress'), ('ended', 'Ended')], default='planned', max_length=11),
+            model_name="event",
+            name="status",
+            field=models.CharField(
+                choices=[
+                    ("planned", "Planned"),
+                    ("in progress", "In Progress"),
+                    ("ended", "Ended"),
+                ],
+                default="planned",
+                max_length=11,
+            ),
         ),
         migrations.AddField(
-            model_name='location',
-            name='saved_by',
-            field=models.ManyToManyField(related_name='saved_locations', to=settings.AUTH_USER_MODEL),
+            model_name="location",
+            name="saved_by",
+            field=models.ManyToManyField(
+                related_name="saved_locations", to=settings.AUTH_USER_MODEL
+            ),
         ),
         migrations.AlterField(
-            model_name='event',
-            name='event_access',
-            field=models.CharField(choices=[('open', 'Open'), ('invitation', 'Invitation')], max_length=10),
+            model_name="event",
+            name="event_access",
+            field=models.CharField(
+                choices=[("open", "Open"), ("invitation", "Invitation")], max_length=10
+            ),
         ),
         migrations.AddField(
-            model_name='event',
-            name='recurrence_schedule',
-            field=models.ForeignKey(default=None, null=True, on_delete=django.db.models.deletion.SET_NULL, to='events.recurringeventschedule'),
+            model_name="event",
+            name="recurrence_schedule",
+            field=models.ForeignKey(
+                default=None,
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                to="events.recurringeventschedule",
+            ),
         ),
     ]
