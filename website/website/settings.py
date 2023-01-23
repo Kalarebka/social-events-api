@@ -150,9 +150,9 @@ REGISTRATION_AUTO_LOGIN = True
 # LOGIN
 # Redirection after logging in
 LOGIN_REDIRECT_URL = "/"
-LOGOUT_REDIRECT_URL = "/auth/login"
+LOGOUT_REDIRECT_URL = "/rest-auth/login/"
 # Redirection if not logged in
-LOGIN_URL = "/auth/login/"
+LOGIN_URL = "/rest-auth/login/"
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.0/ref/settings/#default-auto-field
 
@@ -169,7 +169,6 @@ AUTH_USER_MODEL = "users.CustomUser"
 
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
-        "rest_framework.authentication.SessionAuthentication",
         "rest_framework.authentication.TokenAuthentication",
     ],
     "DEFAULT_PERMISSION_CLASSES": ["rest_framework.permissions.IsAuthenticated"],
