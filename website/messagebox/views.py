@@ -17,13 +17,12 @@ class MessageListView(ListCreateAPIView):
 
     def get_queryset(self):
         # query parameter: category -> "sent" or "received"
-        # if no category - return all user's messages (sent and received)
-        category = self.request.query_params.get("category", None)
+        category = self.request.query_params.get("category", "")
         category_filters = {
-            "sent": {"sender": self.request.user},
-            "received": {"receiver": self.request.user, None: {}},
+            "sent": self.request.user.sent_messages.all(),
+            "received": self.request.user.received_messages.all(),
         }
-        return Message.objects.filter(**category_filters[category])
+        return category_filters[category]
 
 
 class MessageDetailView(RetrieveDestroyAPIView):

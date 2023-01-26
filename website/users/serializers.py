@@ -1,35 +1,22 @@
-from rest_framework.serializers import ModelSerializer, EmailField, CharField
-from rest_framework.validators import UniqueValidator
+from rest_framework.serializers import ModelSerializer
 
-from .models import CustomUser
+from .models import CustomUser, UserGroup
+
+# include nested models or not? (friends for user, members and admins for a group)
 
 
-class UserSerializer(ModelSerializer):
+class UserProfileSerializer(ModelSerializer):
     class Meta:
         model = CustomUser
-        fields = ("id", "email", "password")
+        fields = ("id", "username", "profile_picture")
+        read_only_fields = ("id", "username")
 
 
-class RegistrationSerializer(ModelSerializer):
-    email = EmailField(
-        required=True,
-        validators=[
-            UniqueValidator(
-                message="This email address is already registered.",
-                queryset=CustomUser.objects.all(),
-            )
-        ],
-    )
-    username = CharField(
-        validators=[
-            UniqueValidator(
-                message="This username is already registered.",
-                queryset=CustomUser.objects.all(),
-            )
-        ]
-    )
-    password = CharField(min_length=8)
-
+class GroupSerializer(ModelSerializer):
     class Meta:
-        model = CustomUser
-        fields = ("email", "username", "password")  # repeat password?
+        model = UserGroup
+
+
+class InvitationSerializer(ModelSerializer):
+    # make separate serializers for GroupInvitation and FriendsInvitation
+    pass
