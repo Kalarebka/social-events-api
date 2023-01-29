@@ -22,7 +22,7 @@ class UserMiniSerializer(ModelSerializer):
 
 class UserOwnProfileSerializer(ModelSerializer):
     # own profile shows both public and private fields
-    # Also for modifing own profile
+    # Also for modifying own profile
     class Meta:
         model = CustomUser
         fields = []

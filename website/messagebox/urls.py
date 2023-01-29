@@ -1,7 +1,6 @@
 from django.urls import path
 
-from .views import MessageListView, MessageDetailView
-
+from .views import MessageDetailView, MessageListView
 
 app_name = "messagebox"
 urlpatterns = [

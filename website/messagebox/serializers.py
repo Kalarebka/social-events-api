@@ -1,9 +1,5 @@
 from django.contrib.auth import get_user_model
-
-from rest_framework.serializers import (
-    PrimaryKeyRelatedField,
-    ModelSerializer,
-)
+from rest_framework.serializers import ModelSerializer, PrimaryKeyRelatedField
 
 from .models import Message
 

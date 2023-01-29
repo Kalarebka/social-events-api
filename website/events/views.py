@@ -1,11 +1,10 @@
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
 
-from .models import Event, Location
+from .models import Event
 from .permissions import EventPermission
-from .serializers import EventRetrieveSerializer, EventCreateUpdateSerializer
+from .serializers import EventCreateUpdateSerializer, EventRetrieveSerializer
 
 
 class EventViewSet(ModelViewSet):

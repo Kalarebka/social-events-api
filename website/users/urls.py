@@ -1,19 +1,19 @@
 from django.urls import path
 
 from .views import (
-    UserListView,
     CurrentUserProfileView,
-    UserProfileView,
-    FriendsListView,
     FriendDetailView,
-    GroupsListView,
-    GroupsDetailView,
-    GroupMembersListView,
-    GroupMembersDetailView,
-    GroupAdminsListView,
+    FriendsListView,
     GroupAdminsDetailView,
-    InvitationsListView,
+    GroupAdminsListView,
+    GroupMembersDetailView,
+    GroupMembersListView,
+    GroupsDetailView,
+    GroupsListView,
     InvitationDetailView,
+    InvitationsListView,
+    UserListView,
+    UserProfileView,
 )
 
 app_name = "users"

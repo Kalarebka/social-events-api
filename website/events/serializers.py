@@ -17,6 +17,7 @@ class EventRetrieveSerializer(serializers.ModelSerializer):
             "end_time",
             "location",  # Full location info
             "status",
+            "recurrence_schedule_id",
         ]
 
 
@@ -30,6 +31,7 @@ class EventCreateUpdateSerializer(serializers.ModelSerializer):
             "start_time",
             "end_time",
             "location_id",  # Id only
+            "recurrence_schedule_id",
         ]
 
 
