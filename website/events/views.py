@@ -4,21 +4,24 @@ from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
 
 from .models import Event, Location
-from .permissions import EventPermissions
-from .serializers import EventSerializer
+from .permissions import EventPermission
+from .serializers import EventRetrieveSerializer, EventCreateUpdateSerializer
 
 
 class EventViewSet(ModelViewSet):
-    serializer_class = EventSerializer
-    permission_classes = [IsAuthenticated, EventPermissions]
+    permission_classes = [IsAuthenticated, EventPermission]
     queryset = Event.objects.all()
 
     def get_queryset(self):
-        # ? but user should also be able to see events he's invited to
-        return self.queryset.exclude(event_access="invitation")
+        return self.queryset  # Override with only events the user should be able to see
+
+    def get_serializer_class(self):
+        if self.request.method in ["GET"]:
+            return EventRetrieveSerializer
+        return EventCreateUpdateSerializer
 
 
-class EventParticipantsView(APIView):
+class EventParticipantsListView(APIView):
     def get(self, request, pk):
         # get all event participants
         pass
@@ -29,11 +32,24 @@ class EventParticipantsView(APIView):
         pass
 
 
-class EventInviteView(APIView):
-    def post(self, request):
-        # a list of users (id's) to invite in POST data (can have 1 user)
-        # send invitations to the users (separate function outside views)
-        pass
+class EventParticipantDetailView(APIView):
+    pass
+
+
+class EventOrganisersListView(APIView):
+    pass
+
+
+class EventOrganiserDetailView(APIView):
+    pass
+
+
+class EventInvitationsListView(APIView):
+    pass
+
+
+class EventInvitationDetailView(APIView):
+    pass
 
 
 class LocationListView(APIView):
@@ -42,8 +58,13 @@ class LocationListView(APIView):
         pass
 
     def post(self, request):
-        # add a location to user's saved locations
+        # create a location and return it's id
+        # parameter: save: bool - if True, add the location to user's saved locations
         pass
+
+
+class LocationsListView(APIView):
+    pass
 
 
 class LocationDetailView(APIView):

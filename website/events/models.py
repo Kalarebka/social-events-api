@@ -4,6 +4,8 @@ from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import models
 
+from users.models import AbstractInvitation
+
 
 class Location(models.Model):
     name = models.CharField(max_length=64)
@@ -20,7 +22,6 @@ class Location(models.Model):
 
 
 class RecurringEventSchedule(models.Model):
-    # There's a django-recurrence package that works with django 4, maybe try to use it instead???
     interval = models.IntegerField()
     time_unit = models.CharField(
         max_length=16
@@ -39,24 +40,24 @@ class RecurringEventSchedule(models.Model):
 
 class Event(models.Model):
     class EventAccess(models.TextChoices):
-        OPEN = "open"
-        INVITATION = "invitation"
+        PERSONAL = "personal"
+        GROUP = "group"
 
     class EventStatus(models.TextChoices):
         PLANNED = "planned"
         IN_PROGRESS = "in progress"
         ENDED = "ended"
 
-    event_access = models.CharField(choices=EventAccess.choices, max_length=10)
+    event_type = models.CharField(choices=EventAccess.choices, max_length=15)
     name = models.CharField(max_length=128)
     description = models.TextField()
     time_created = models.DateTimeField(auto_now_add=True)
     organisers = models.ManyToManyField(
-        settings.AUTH_USER_MODEL, related_name="events_organiser"
+        settings.AUTH_USER_MODEL, related_name="events_as_organiser"
     )
     participants = models.ManyToManyField(
-        settings.AUTH_USER_MODEL, related_name="events_participant"
-    )
+        settings.AUTH_USER_MODEL, related_name="events_as_participant"
+    )  # throw this away and use invited_users/confirmed=True?
     start_time = models.DateTimeField()
     end_time = models.DateTimeField()
     location = models.ForeignKey(
@@ -72,3 +73,18 @@ class Event(models.Model):
     def clean(self):
         if self.start_time >= self.end_time:
             raise ValidationError("Event end date must be later than start date")
+
+
+class EventInvitation(models.Model):
+    event = models.ForeignKey(
+        Event,
+        on_delete=models.CASCADE,
+        null=False,
+        related_name="invited_users",
+    )
+    receiver = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="event_invitations",
+    )
+    confirmed = models.BooleanField(default=False)

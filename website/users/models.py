@@ -62,9 +62,5 @@ class FriendInvitation(AbstractInvitation):
     pass
 
 
-class EventInvitation(AbstractInvitation):
-    pass
-
-
 class GroupInvitation(AbstractInvitation):
     pass

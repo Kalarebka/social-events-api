@@ -6,10 +6,26 @@ from .models import CustomUser, UserGroup
 
 
 class UserProfileSerializer(ModelSerializer):
+    # only for displaying user's public information
     class Meta:
         model = CustomUser
-        fields = ("id", "username", "profile_picture")
-        read_only_fields = ("id", "username")
+        fields = ["id", "username", "profile_picture"]
+
+
+class UserMiniSerializer(ModelSerializer):
+    # Serializer to use in lists
+    # profile_url = url to the user profile view
+    class Meta:
+        model = CustomUser
+        fields = ["id", "username", "profile_url"]
+
+
+class UserOwnProfileSerializer(ModelSerializer):
+    # own profile shows both public and private fields
+    # Also for modifing own profile
+    class Meta:
+        model = CustomUser
+        fields = []
 
 
 class GroupSerializer(ModelSerializer):
