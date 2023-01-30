@@ -35,7 +35,7 @@ class RecurringEventSchedule(models.Model):
 
 
 class Event(models.Model):
-    class EventAccess(models.TextChoices):
+    class EventType(models.TextChoices):
         PERSONAL = "personal"
         GROUP = "group"
 
@@ -44,7 +44,7 @@ class Event(models.Model):
         IN_PROGRESS = "in progress"
         ENDED = "ended"
 
-    event_type = models.CharField(choices=EventAccess.choices, max_length=15)
+    event_type = models.CharField(choices=EventType.choices, max_length=15)
     name = models.CharField(max_length=128)
     description = models.TextField()
     time_created = models.DateTimeField(auto_now_add=True)
