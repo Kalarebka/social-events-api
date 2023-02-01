@@ -1,5 +1,3 @@
-# forms for creating custom user in admin // not working yet
-
 from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import UserCreationForm, UserChangeForm
 

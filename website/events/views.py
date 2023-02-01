@@ -26,8 +26,7 @@ class EventParticipantsListView(APIView):
         pass
 
     def post(self, request, pk):
-        # add current user to event participants
-        # user can join public events and event of groups he's a part of without invitation
+        # send event invitations to users
         pass
 
 

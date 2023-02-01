@@ -6,12 +6,12 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('messagebox', '0002_messagetemplate'),
+        ("messagebox", "0002_messagetemplate"),
     ]
 
     operations = [
         migrations.AlterModelOptions(
-            name='message',
-            options={'ordering': ['-date_sent']},
+            name="message",
+            options={"ordering": ["-date_sent"]},
         ),
     ]
