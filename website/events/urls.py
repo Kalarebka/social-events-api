@@ -34,7 +34,7 @@ urlpatterns = [
     path("invitations/", EventInvitationsListView.as_view()),  # all user's invitations
     path(
         "invitations/<int:pk>", EventInvitationDetailView.as_view()
-    ),  # Update - accept invitation, delete - decline
+    ),  # POST response="accept"/"decline"
     path(
         "locations/", LocationsListView.as_view()
     ),  # list and post to user's saved locations

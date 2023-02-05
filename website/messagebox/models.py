@@ -1,32 +1,23 @@
 from django.conf import settings
-from django.db.models import (
-    CASCADE,
-    SET_NULL,
-    BooleanField,
-    CharField,
-    DateTimeField,
-    ForeignKey,
-    Model,
-    TextField,
-)
+from django.db import models
 
 
-class Message(Model):
-    sender = ForeignKey(
+class Message(models.Model):
+    sender = models.ForeignKey(
         settings.AUTH_USER_MODEL,
-        on_delete=SET_NULL,
+        on_delete=models.SET_NULL,
         null=True,
         related_name="sent_messages",
     )
-    receiver = ForeignKey(
+    receiver = models.ForeignKey(
         settings.AUTH_USER_MODEL,
-        on_delete=CASCADE,
+        on_delete=models.CASCADE,
         related_name="received_messages",
     )
-    title = CharField(max_length=258, default="No title")
-    content = TextField(default="")
-    date_sent = DateTimeField(auto_now_add=True)
-    read_status = BooleanField(default=False)
+    title = models.CharField(max_length=258, default="No title")
+    content = models.TextField(default="")
+    date_sent = models.DateTimeField(auto_now_add=True)
+    read_status = models.BooleanField(default=False)
 
     class Meta:
         # Order by date_sent descending
@@ -36,7 +27,7 @@ class Message(Model):
         return self.title
 
 
-class MessageTemplate(Model):
+class MessageTemplate(models.Model):
     # templates to be used when creating auto messages
     # in db or in text files in static?
     pass

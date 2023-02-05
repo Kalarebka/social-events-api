@@ -7,13 +7,31 @@ from rest_framework.generics import (
 from rest_framework.views import APIView
 
 from .models import CustomUser, UserGroup
-from .serializers import UserProfileSerializer, GroupSerializer, InvitationSerializer
+from .serializers import (
+    UserProfileSerializer,
+    UserMiniSerializer,
+    GroupSerializer,
+    InvitationSerializer,
+)
 
 
 class UserListView(ListAPIView):
-    # Retrieve a list of all active user profiles
-    queryset = CustomUser.objects.filter(is_active=True)
-    serializer_class = UserProfileSerializer
+    """Retrieve a list of active user profiles. \n
+    Query parameters: \n
+    - friends: bool - default: False; if True, return current user's friends \n
+    - minimal: bool, default: False; if True, use mini serializer (id, username, link to profile), otherwise - return full profiles \n
+    - ids: list of integers - optional - will return users from the list \n
+    """
+
+    def get_serializer_class(self):
+        if self.request.query_params.get("minimal", False):
+            return UserMiniSerializer
+        return UserProfileSerializer
+
+    def get_queryset(self):
+        if self.request.query_params.get("friends", False):
+            return self.request.user.friends.filter(active=True)
+        return CustomUser.objects.filter(is_active=True)
 
 
 class CurrentUserProfileView(RetrieveUpdateDestroyAPIView):
@@ -32,14 +50,16 @@ class UserProfileView(RetrieveAPIView):
     serializer_class = UserProfileSerializer
 
 
-class FriendsListView(ListAPIView):
+class FriendsListView(
+    ListAPIView
+):  # parameter in user list instead of separate friends list?
     # GET - list of current user's friends
     # POST (user id in request data) - send friend invitation// ?? in detail view? post or patch?
     serializer_class = UserProfileSerializer
 
     def get_queryset(self):
         user = self.request.user
-        return user.friends.all()
+        return user.friends.filter(active=True)
 
 
 class FriendDetailView(APIView):
