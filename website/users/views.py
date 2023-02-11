@@ -22,7 +22,7 @@ class UserListView(ListAPIView):
     """GET: Retrieve a list of active user profiles.
     Query parameters:
     - minimal: bool, default: False; if True, use mini serializer (id, username, link to profile), otherwise - return full profiles
-    - ids: list of integers - optional - will return users from the list
+    - ids: list of integers - optional - will return users with the specified ids (format: "/users?ids=1,2,3,4)
     """
 
     def get_serializer_class(self):
@@ -31,26 +31,28 @@ class UserListView(ListAPIView):
         return UserProfileSerializer
 
     def get_queryset(self):
-        if self.request.query_params.get("friends", False):
-            return self.request.user.friends.all()
-        return CustomUser.objects.all()
+        ids = self.request.query_params.get("ids", None)
+        if not ids:
+            return CustomUser.objects.all()
+        id_list = [int(id) for id in ids.split(",")]
+        return CustomUser.objects.filter(pk__in=id_list)
 
 
 class UserProfileView(RetrieveUpdateAPIView):
     """GET: Retrieve a single user's profile by user id.
-    For the currently logged in user's own profile, use separate serializer that also returns private information.
+    For the currently logged in user's own profile, uses separate serializer that also returns private information.
     PUT/PATCH: User can update own profile."""
 
     queryset = CustomUser.objects.all()
     permission_classes = [OwnProfileOrReadOnly]
 
     def get_serializer_class(self):
-        if self.args["pk"] == self.request.user.pk:
+        if self.kwargs["pk"] == self.request.user.pk:
             return UserOwnProfileSerializer
         return UserProfileSerializer
 
 
-class FriendsListView(ListAPIView):
+class FriendsListView(ListCreateAPIView):
     """GET: Retrieve a list of current user's friends
     Query parameters:
     - minimal: bool, default: False; if True, use mini serializer (id, username, link to profile), otherwise - return full profiles
@@ -64,7 +66,11 @@ class FriendsListView(ListAPIView):
 
     def get_queryset(self):
         user = self.request.user
-        return user.friends.filter(active=True)
+        return user.friends.all()
+
+    def create(self, request, *args, **kwargs):
+        # Override to create an invitation
+        pass
 
 
 class FriendDetailView(APIView):

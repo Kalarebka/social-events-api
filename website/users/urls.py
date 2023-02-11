@@ -19,7 +19,7 @@ app_name = "users"
 urlpatterns = [
     # User profiles
     path("", UserListView.as_view(), name="user_list"),
-    path("<int:pk>", UserProfileView.as_view()),
+    path("<int:pk>", UserProfileView.as_view(), name="user_profile"),
     # Friends
     path("<int:pk>/friends/", FriendsListView.as_view()),
     path("<int:pk>/friends/<int:friend_pk>", FriendDetailView.as_view()),
