@@ -25,7 +25,7 @@ class UserOwnProfileSerializer(ModelSerializer):
     # Also for modifying own profile
     class Meta:
         model = CustomUser
-        fields = []
+        fields = ["id", "username", "profile_picture", "email"]
 
 
 class GroupSerializer(ModelSerializer):

@@ -1,7 +1,6 @@
 from django.urls import path
 
 from .views import (
-    CurrentUserProfileView,
     FriendDetailView,
     FriendsListView,
     GroupAdminsDetailView,
@@ -19,12 +18,11 @@ from .views import (
 app_name = "users"
 urlpatterns = [
     # User profiles
-    path("", UserListView.as_view()),
-    path("me/", CurrentUserProfileView.as_view()),
+    path("", UserListView.as_view(), name="user_list"),
     path("<int:pk>", UserProfileView.as_view()),
     # Friends
-    path("friends/", FriendsListView.as_view()),
-    path("friends/<int:pk>", FriendDetailView.as_view()),
+    path("<int:pk>/friends/", FriendsListView.as_view()),
+    path("<int:pk>/friends/<int:friend_pk>", FriendDetailView.as_view()),
     # Groups
     path("usergroups/", GroupsListView.as_view()),
     path("usergroups/<int:pk>", GroupsDetailView.as_view()),

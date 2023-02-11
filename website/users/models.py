@@ -31,6 +31,10 @@ class CustomUser(AbstractUser):
     def __str__(self):
         return self.username
 
+    class Meta:
+        # Order alphabetically by username
+        ordering = ["username"]
+
 
 class UserGroup(Model):
     name: TextField = TextField(max_length=128)

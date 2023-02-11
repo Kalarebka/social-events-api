@@ -1,4 +1,5 @@
 from rest_framework.generics import (
+    RetrieveUpdateAPIView,
     RetrieveUpdateDestroyAPIView,
     ListAPIView,
     RetrieveAPIView,
@@ -7,20 +8,21 @@ from rest_framework.generics import (
 from rest_framework.views import APIView
 
 from .models import CustomUser, UserGroup
+from .permissions import OwnProfileOrReadOnly
 from .serializers import (
     UserProfileSerializer,
     UserMiniSerializer,
+    UserOwnProfileSerializer,
     GroupSerializer,
     InvitationSerializer,
 )
 
 
 class UserListView(ListAPIView):
-    """Retrieve a list of active user profiles. \n
-    Query parameters: \n
-    - friends: bool - default: False; if True, return current user's friends \n
-    - minimal: bool, default: False; if True, use mini serializer (id, username, link to profile), otherwise - return full profiles \n
-    - ids: list of integers - optional - will return users from the list \n
+    """GET: Retrieve a list of active user profiles.
+    Query parameters:
+    - minimal: bool, default: False; if True, use mini serializer (id, username, link to profile), otherwise - return full profiles
+    - ids: list of integers - optional - will return users from the list
     """
 
     def get_serializer_class(self):
@@ -30,32 +32,35 @@ class UserListView(ListAPIView):
 
     def get_queryset(self):
         if self.request.query_params.get("friends", False):
-            return self.request.user.friends.filter(active=True)
-        return CustomUser.objects.filter(is_active=True)
+            return self.request.user.friends.all()
+        return CustomUser.objects.all()
 
 
-class CurrentUserProfileView(RetrieveUpdateDestroyAPIView):
-    # GET - own profile
-    # PUT - update own profile
-    # DELETE - deactivate own profile (remains in the db, but not visible)
+class UserProfileView(RetrieveUpdateAPIView):
+    """GET: Retrieve a single user's profile by user id.
+    For the currently logged in user's own profile, use separate serializer that also returns private information.
+    PUT/PATCH: User can update own profile."""
+
     queryset = CustomUser.objects.all()
-    serializer_class = UserProfileSerializer
-    # How to get /<pk> view to resolve to request.user's id?
-    # Separate Serializer, so the user can see and change more information (e.g. username, email)
+    permission_classes = [OwnProfileOrReadOnly]
+
+    def get_serializer_class(self):
+        if self.args["pk"] == self.request.user.pk:
+            return UserOwnProfileSerializer
+        return UserProfileSerializer
 
 
-class UserProfileView(RetrieveAPIView):
-    # GET - user profile by id (only active users)
-    queryset = CustomUser.objects.filter(is_active=True)
-    serializer_class = UserProfileSerializer
+class FriendsListView(ListAPIView):
+    """GET: Retrieve a list of current user's friends
+    Query parameters:
+    - minimal: bool, default: False; if True, use mini serializer (id, username, link to profile), otherwise - return full profiles
+    POST: {"id": <id of the user to invite>} - send friend invitation
+    """
 
-
-class FriendsListView(
-    ListAPIView
-):  # parameter in user list instead of separate friends list?
-    # GET - list of current user's friends
-    # POST (user id in request data) - send friend invitation// ?? in detail view? post or patch?
-    serializer_class = UserProfileSerializer
+    def get_serializer_class(self):
+        if self.request.query_params.get("minimal", False):
+            return UserMiniSerializer
+        return UserProfileSerializer
 
     def get_queryset(self):
         user = self.request.user
