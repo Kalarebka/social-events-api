@@ -1,21 +1,29 @@
-from rest_framework import serializers
 from django.urls import reverse
+from rest_framework import serializers
 
-from .models import CustomUser, UserGroup, FriendInvitation, GroupInvitation
-
-# include nested models or not? (friends for user, members and admins for a group)
+from .models import CustomUser, FriendInvitation, GroupInvitation, UserGroup
 
 
 class UserProfileSerializer(serializers.ModelSerializer):
-    # only for displaying user's public information
-    # add fields with nested serializers/list of ids for friends and groups
+    """Public user profile information, for retrieve only views"""
+
+    friend_ids = serializers.SerializerMethodField("get_friend_ids")
+    group_ids = serializers.SerializerMethodField("get_group_ids")
+
     class Meta:
         model = CustomUser
-        fields = ["id", "username", "profile_picture"]
+        fields = ["id", "username", "profile_picture", "friend_ids", "group_ids"]
+
+    def get_friend_ids(self, obj):
+        return [friend.id for friend in obj.friends.all()]
+
+    def get_group_ids(self, obj):
+        return [group.id for group in obj.groups_as_member.all()]
 
 
 class UserMiniSerializer(serializers.ModelSerializer):
-    # Serializer to use in lists
+    """Minimal user information, for retrieve only views"""
+
     profile_url = serializers.SerializerMethodField()
 
     class Meta:
@@ -26,12 +34,13 @@ class UserMiniSerializer(serializers.ModelSerializer):
         return reverse("users:user_profile", kwargs={"pk": obj.pk})
 
 
-class UserOwnProfileSerializer(serializers.ModelSerializer):
-    # own profile shows both public and private fields
-    # Also for modifying own profile
+class UserOwnProfileSerializer(UserProfileSerializer):
+    """Adds private fields to profile serializer and allow updating the information"""
+
     class Meta:
         model = CustomUser
-        fields = ["id", "username", "profile_picture", "email", "is_active"]
+        fields = UserProfileSerializer.Meta.fields + ["email", "is_active"]
+        read_only_fields = ["id", "friend_ids"]
 
 
 class GroupSerializer(serializers.ModelSerializer):
@@ -39,6 +48,6 @@ class GroupSerializer(serializers.ModelSerializer):
         model = UserGroup
 
 
-class FriendsInvitationSerializer(serializers.ModelSerializer):
+class FriendInvitationSerializer(serializers.ModelSerializer):
     class Meta:
         model = FriendInvitation

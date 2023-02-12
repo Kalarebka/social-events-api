@@ -14,7 +14,7 @@ from .serializers import (
     UserMiniSerializer,
     UserOwnProfileSerializer,
     GroupSerializer,
-    InvitationSerializer,
+    FriendInvitationSerializer,
 )
 
 
