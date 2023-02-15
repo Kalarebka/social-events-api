@@ -1,3 +1,5 @@
+from django.shortcuts import get_object_or_404
+from rest_framework import status
 from rest_framework.generics import (
     RetrieveUpdateAPIView,
     RetrieveUpdateDestroyAPIView,
@@ -5,16 +7,19 @@ from rest_framework.generics import (
     RetrieveAPIView,
     ListCreateAPIView,
 )
+from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from .models import CustomUser, UserGroup
+from .models import CustomUser, UserGroup, FriendInvitation, GroupInvitation
 from .permissions import OwnProfileOrReadOnly
 from .serializers import (
     UserProfileSerializer,
     UserMiniSerializer,
     UserOwnProfileSerializer,
-    GroupSerializer,
+    UserGroupSerializer,
+    UserGroupMiniSerializer,
     FriendInvitationSerializer,
+    InvitationResponseSerializer,
 )
 
 
@@ -52,11 +57,11 @@ class UserProfileView(RetrieveUpdateAPIView):
         return UserProfileSerializer
 
 
+# not necessary? can get the same info by getting a user profile and requesting user list with the ids
 class FriendsListView(ListCreateAPIView):
     """GET: Retrieve a list of current user's friends
     Query parameters:
     - minimal: bool, default: False; if True, use mini serializer (id, username, link to profile), otherwise - return full profiles
-    POST: {"id": <id of the user to invite>} - send friend invitation
     """
 
     def get_serializer_class(self):
@@ -68,25 +73,68 @@ class FriendsListView(ListCreateAPIView):
         user = self.request.user
         return user.friends.all()
 
-    def create(self, request, *args, **kwargs):
-        # Override to create an invitation
-        pass
-
 
 class FriendDetailView(APIView):
-    def delete(self, request, pk):
-        # remove user from current user's friends
-        pass
+    def post(self, request, friend_pk):
+        """Send a friend invitation to user with friend_pk"""
+        receiver = get_object_or_404(CustomUser, pk=friend_pk)
+        if receiver in request.user.friends.all():
+            return Response(
+                {"message": "user already on friends list"},
+                status=status.HTTP_304_NOT_MODIFIED,
+            )
+        invitation = FriendInvitation(sender=request.user, receiver=receiver)
+        invitation.save()
+        return Response(
+            {"message": "invitation sent"},
+            status=status.HTTP_201_CREATED,
+        )
+
+    def delete(self, request, friend_pk):
+        """Remove current user and friend from each other's friend lists"""
+        user = request.user
+        friend = get_object_or_404(CustomUser, pk=friend_pk)
+        if friend not in request.user.friends.all():
+            return Response(
+                {"message": "no such user on friend list"},
+                status=status.HTTP_304_NOT_MODIFIED,
+            )
+        user.friends.remove(friend)
+        return Response(
+            {"message": f"User {friend.id} removed from friends"},
+            status=status.HTTP_200_OK,
+        )
 
 
 class GroupsListView(ListCreateAPIView):
-    # GET - list all available groups
-    # Missing an endpoint to show groups current user belongs to, not decided where yet
-    # POST - create a group (user set as admin and member)
-    queryset = (
-        UserGroup.objects.all()
-    )  # could have some filter, e.g. for private groups that won't show up
-    serializer = GroupSerializer
+    """GET: Retrieve current user's groups
+    Query parameters:
+    - minimal: bool, default: False; if True, use mini serializer (id, group name, link to group detail)
+    POST - create a group
+    """
+
+    serializer = UserGroupSerializer
+
+    def get_serializer_class(self):
+        if self.request.query_params.get("minimal", False):
+            return UserGroupMiniSerializer
+        return UserGroupSerializer
+
+    def get_queryset(self):
+        ids = self.request.query_params.get("ids", None)
+        if not ids:
+            return CustomUser.objects.all()
+        id_list = [int(id) for id in ids.split(",")]
+        return CustomUser.objects.filter(pk__in=id_list)
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        group = serializer.save(commit=False)
+        group.administrators.add(request.user)
+        group.members.add(request.user)
+        group.save()
+        return Response({"id": group.id}, status=status.HTTP_201_CREATED)
 
 
 class GroupsDetailView(RetrieveUpdateDestroyAPIView):
@@ -94,7 +142,7 @@ class GroupsDetailView(RetrieveUpdateDestroyAPIView):
     # PUT/PATCH - edit group details (admin only) (DestroyMixin provides both put and patch)
     # DELETE - delete group (admin only)
     queryset = UserGroup.objects.all()
-    serializer = GroupSerializer
+    serializer = UserGroupSerializer
     permission_classes = []  # some permission where only admin can update and delete
 
 
@@ -112,7 +160,7 @@ class GroupMembersDetailView(APIView):
         pass
 
     def delete(self, request, pk, user_pk):
-        # remove user from group
+        # remove user from group (admin can remove any member; user can remove self)
         pass
 
 
@@ -137,21 +185,39 @@ class GroupAdminsDetailView(APIView):
         pass
 
 
-class InvitationsListView(APIView):
-    # very mysterious
-    # show all user's unconfirmed invitations
-    # can ListAPIView use two models (group and friends invitation)? probably not.
-    # it would be perfect if it could also get event invitations,
-    # but what if they're in different app? no idea.
-    pass
+class FriendInvitationsListView(ListAPIView):
+    """GET - list of invitations
+    query parameter: category: sent/received (default: received)
+    Sent - invitations sent by the user
+    Received - current user's received invitations without response"""
+
+    serializer_class = FriendInvitationSerializer
+
+    def get_queryset(self):
+        user = self.request.user
+        category = self.request.query_params.get["category"]
+        if category == "sent":
+            return FriendInvitation.objects.filter(sender=user)
+        return FriendInvitation.objects.filter(receiver=user, response_received=False)
 
 
-class InvitationDetailView(APIView):
-    def patch(self, request, pk):
-        # some magic to confirm the invitation and modify necessary objects <- in invitations method
-        # should call the invitation's confirm() method
-        pass
+class FriendInvitationDetailView(APIView):
+    def get(self, request, pk):
+        """GET - Single invitation details"""
+        invitation = FriendInvitation.objects.get(pk=pk)
+        serializer = FriendInvitationSerializer(invitation)
+        return Response(serializer.data)
 
-    def delete(self, request, pk):
-        # just delete or do something to show it was declined?
-        pass
+    def post(self, request, pk):
+        """POST - send response to the invitation
+        response: accept or decline"""
+        serializer = InvitationResponseSerializer(data=request.data)
+        if serializer.is_valid():
+            invitation = get_object_or_404(FriendInvitation, pk=pk)
+            invitation.send_response(serializer.data["response"])
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        else:
+            return Response(
+                {"error": "Response must be one of the following: accept or decline"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )

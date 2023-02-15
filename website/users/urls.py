@@ -9,8 +9,8 @@ from .views import (
     GroupMembersListView,
     GroupsDetailView,
     GroupsListView,
-    InvitationDetailView,
-    InvitationsListView,
+    FriendInvitationDetailView,
+    FriendInvitationsListView,
     UserListView,
     UserProfileView,
 )
@@ -21,16 +21,16 @@ urlpatterns = [
     path("", UserListView.as_view(), name="user_list"),
     path("<int:pk>", UserProfileView.as_view(), name="user_profile"),
     # Friends
-    path("<int:pk>/friends/", FriendsListView.as_view()),
-    path("<int:pk>/friends/<int:friend_pk>", FriendDetailView.as_view()),
+    path("friends/", FriendsListView.as_view(), name="friends_list"),
+    path("friends/<int:friend_pk>", FriendDetailView.as_view(), name="friend_detail"),
     # Groups
-    path("usergroups/", GroupsListView.as_view()),
-    path("usergroups/<int:pk>", GroupsDetailView.as_view()),
+    path("usergroups/", GroupsListView.as_view(), name="groups_list"),
+    path("usergroups/<int:pk>", GroupsDetailView.as_view(), name="group_detail"),
     path("usergroups/<int:pk>/members/", GroupMembersListView.as_view()),
     path("usergroups/<int:pk>/members/<int:user_pk>", GroupMembersDetailView.as_view()),
     path("usergroups/<int:pk>/admins/", GroupAdminsListView.as_view()),
     path("usergroups/<int:pk>/admins/<int:user_pk>", GroupAdminsDetailView.as_view()),
     # Invitations
-    path("invitations/", InvitationsListView.as_view()),
-    path("invitations/<int:pk>", InvitationDetailView.as_view()),
+    path("invitations/friends", FriendInvitationsListView.as_view()),
+    path("invitations/friends/<int:pk>", FriendInvitationDetailView.as_view()),
 ]

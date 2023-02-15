@@ -24,7 +24,8 @@ class CustomUser(AbstractUser):
 
 
 class UserGroup(models.Model):
-    name = models.TextField(max_length=128)
+    name = models.CharField(max_length=128)
+    description = models.TextField(blank=True, null=True)
     administrators = models.ManyToManyField(CustomUser, related_name="groups_as_admin")
     members = models.ManyToManyField(CustomUser, related_name="groups_as_member")
 
@@ -32,7 +33,7 @@ class UserGroup(models.Model):
 class AbstractInvitation(models.Model):
     sender = models.ForeignKey(
         CustomUser,
-        on_delete=models.SET_NULL,
+        on_delete=models.CASCADE,
         null=True,
         related_name="%(app_label)s_%(class)s_sent",
     )
@@ -42,15 +43,28 @@ class AbstractInvitation(models.Model):
         related_name="%(app_label)s_%(class)s_received",
     )
     confirmed = models.BooleanField(default=False)
-    declined = models.BooleanField(default=False)
+    response_received = models.BooleanField(default=False)
+    date_sent = models.DateTimeField(auto_now_add=True)
 
-    def send_invitation(self):
+    def save(self, *args, **kwargs):
+        # When the invitation is first created, send and email with notification
+        if self._state.adding:
+            self.send_invitation_notification()
+        super().save(*args, **kwargs)
+
+    def send_invitation_notification(self):
         # send a notification email to the receiver (celery task)
         # celery task function arguments: email template file, dict with args to insert into template
         # (sender, receiver, )
         pass
 
-    def confirm_invitation(self):
+    def send_response(self, response):
+        if response == "accept":
+            self.confirm()
+        else:
+            self.response_received = True
+
+    def confirm(self):
         pass
 
     class Meta:
@@ -58,9 +72,11 @@ class AbstractInvitation(models.Model):
 
 
 class FriendInvitation(AbstractInvitation):
-    def confirm_invitation(self):
+    def confirm(self):
         self.sender.friends.add(self.receiver)
         self.receiver.friends.add(self.sender)
+        self.sender.save()
+        self.receiver.save()
 
 
 class GroupInvitation(AbstractInvitation):
@@ -68,5 +84,6 @@ class GroupInvitation(AbstractInvitation):
         UserGroup, on_delete=models.CASCADE, related_name="invitations"
     )
 
-    def confirm_invitation(self):
+    def confirm(self):
         self.group.members.add(self.receiver)
+        self.group.save()
