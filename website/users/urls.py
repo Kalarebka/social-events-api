@@ -4,13 +4,11 @@ from .views import (
     FriendDetailView,
     FriendsListView,
     GroupAdminsDetailView,
-    GroupAdminsListView,
     GroupMembersDetailView,
-    GroupMembersListView,
     GroupsDetailView,
     GroupsListView,
     FriendInvitationDetailView,
-    FriendInvitationsListView,
+    InvitationsListView,
     UserListView,
     UserProfileView,
 )
@@ -26,11 +24,15 @@ urlpatterns = [
     # Groups
     path("usergroups/", GroupsListView.as_view(), name="groups_list"),
     path("usergroups/<int:pk>", GroupsDetailView.as_view(), name="group_detail"),
-    path("usergroups/<int:pk>/members/", GroupMembersListView.as_view()),
-    path("usergroups/<int:pk>/members/<int:user_pk>", GroupMembersDetailView.as_view()),
-    path("usergroups/<int:pk>/admins/", GroupAdminsListView.as_view()),
-    path("usergroups/<int:pk>/admins/<int:user_pk>", GroupAdminsDetailView.as_view()),
+    path(
+        "usergroups/<int:group_pk>/members/<int:user_pk>",
+        GroupMembersDetailView.as_view(),
+    ),
+    path(
+        "usergroups/<int:group_pk>/admins/<int:user_pk>",
+        GroupAdminsDetailView.as_view(),
+    ),
     # Invitations
-    path("invitations/friends", FriendInvitationsListView.as_view()),
+    path("invitations/", InvitationsListView.as_view()),
     path("invitations/friends/<int:pk>", FriendInvitationDetailView.as_view()),
 ]

@@ -2,7 +2,7 @@ from django.contrib import admin
 
 from django.contrib.auth.admin import UserAdmin
 from .forms import CustomUserChangeForm, CustomUserCreationForm
-from .models import CustomUser
+from .models import CustomUser, UserGroup, FriendInvitation, GroupInvitation
 
 
 class FromUserInline(admin.TabularInline):
@@ -39,3 +39,6 @@ class CustomUserAdmin(UserAdmin):
 
 
 admin.site.register(CustomUser, CustomUserAdmin)
+admin.site.register(UserGroup)
+admin.site.register(FriendInvitation)
+admin.site.register(GroupInvitation)

@@ -77,6 +77,12 @@ class FriendInvitationSerializer(serializers.ModelSerializer):
         ]
 
 
+class GroupInvitationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = FriendInvitation
+        fields = ["id", "sender", "receiver", "group", "date_sent"]
+
+
 class InvitationResponseSerializer(serializers.Serializer):
     response = serializers.ChoiceField(
         choices=(("accept", "Accept invitation"), ("decline", "Decline invitation"))

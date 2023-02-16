@@ -11,7 +11,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from .models import CustomUser, UserGroup, FriendInvitation, GroupInvitation
-from .permissions import OwnProfileOrReadOnly
+from .permissions import OwnProfileOrReadOnly, UserGroupPermission, IsGroupAdmin
 from .serializers import (
     UserProfileSerializer,
     UserMiniSerializer,
@@ -19,6 +19,7 @@ from .serializers import (
     UserGroupSerializer,
     UserGroupMiniSerializer,
     FriendInvitationSerializer,
+    GroupInvitationSerializer,
     InvitationResponseSerializer,
 )
 
@@ -138,58 +139,101 @@ class GroupsListView(ListCreateAPIView):
 
 
 class GroupsDetailView(RetrieveUpdateDestroyAPIView):
-    # GET - group details
-    # PUT/PATCH - edit group details (admin only) (DestroyMixin provides both put and patch)
-    # DELETE - delete group (admin only)
+    """GET - group details (group members only)
+    PUT/PATCH - edit group details (admin only)
+    DELETE - delete group (admin only)"""
+
     queryset = UserGroup.objects.all()
     serializer = UserGroupSerializer
-    permission_classes = []  # some permission where only admin can update and delete
-
-
-class GroupMembersListView(APIView):
-    def get(self, request, pk):
-        # get the group's members list
-        pass
+    permission_classes = [
+        UserGroupPermission,
+    ]
 
 
 class GroupMembersDetailView(APIView):
-    # group admin only
-    def post(self, request, pk, user_pk):
-        # method: post or patch? user_pk in url or parameters?
-        # add user to group (== send invitation)
-        pass
+    permission_classes = [IsGroupAdmin]
 
-    def delete(self, request, pk, user_pk):
-        # remove user from group (admin can remove any member; user can remove self)
-        pass
+    def post(self, request, group_pk, user_pk):
+        """Send group invitation to user. Path parameters: group_pk, user_pk"""
+        group = get_object_or_404(UserGroup, pk=group_pk)
+        receiver = get_object_or_404(CustomUser, pk=user_pk)
+        if receiver in group.members.all():
+            return Response(
+                {"message": "user already a member of the group"},
+                status=status.HTTP_304_NOT_MODIFIED,
+            )
+        invitation = GroupInvitation(
+            sender=request.user, receiver=receiver, group=group
+        )
+        invitation.save()
+        return Response(
+            {"message": "invitation sent"},
+            status=status.HTTP_201_CREATED,
+        )
 
-
-class GroupAdminsListView(APIView):
-    def get(self, request, pk):
-        # get the group's admins list
-        pass
+    def delete(self, request, group_pk, user_pk):
+        """Remove user from group"""
+        group = get_object_or_404(UserGroup, pk=group_pk)
+        user = get_object_or_404(CustomUser, pk=user_pk)
+        if user not in group.members.all():
+            return Response(
+                {"message": "user is not a member of the group"},
+                status=status.HTTP_304_NOT_MODIFIED,
+            )
 
 
 class GroupAdminsDetailView(APIView):
-    # group admin only
-    def post(self, request, pk, user_pk):
-        # make another user an admin
-        # does not require the other user's permission
-        pass
+    permission_classes = [IsGroupAdmin]
 
-    def delete(self, request, pk, user_pk):
-        # remove user from admins
-        # if there is one admin and tries to remove themself, send back an appropriate
-        # response code and message that they should first set another admin from users
-        # or if they're the only user to delete the group)
-        pass
+    def post(self, request, group_pk, user_pk):
+        """Make another user an admin of the group"""
+        group = get_object_or_404(UserGroup, pk=group_pk)
+        user = get_object_or_404(CustomUser, pk=user_pk)
+
+        if user not in group.members.all():
+            return Response(
+                {"message": "user is not a member of the group"},
+                status=status.HTTP_304_NOT_MODIFIED,
+            )
+
+        group.administrators.add(user)
+        group.save()
+        return Response(
+            {"message": "user added to group admins"},
+            status=status.HTTP_200_OK,
+        )
+
+    def delete(self, request, group_pk, user_pk):
+        """Take away user's admin status"""
+        group = get_object_or_404(UserGroup, pk=group_pk)
+        user = get_object_or_404(CustomUser, pk=user_pk)
+        if user not in group.administrators.all():
+            return Response(
+                {"message": "user is not an administrator of the group"},
+                status=status.HTTP_304_NOT_MODIFIED,
+            )
+        group.administrators.remove(user)
+        group.save()
+        return Response(
+            {"message": "user removed from group admins"},
+            status=status.HTTP_200_OK,
+        )
 
 
-class FriendInvitationsListView(ListAPIView):
+class InvitationsListView(ListAPIView):
     """GET - list of invitations
-    query parameter: category: sent/received (default: received)
+    query parameters:
+    - kind: friends/groups
+    - category: sent/received (default: received)
     Sent - invitations sent by the user
     Received - current user's received invitations without response"""
+
+    def get_serializer_class(self):
+        invite_type = self.request.query_params.get["invite_type"]
+        if invite_type == "friends":
+            return FriendInvitationSerializer
+        elif invite_type == "groups":
+            return GroupInvitationSerializer
 
     serializer_class = FriendInvitationSerializer
 
@@ -202,6 +246,28 @@ class FriendInvitationsListView(ListAPIView):
 
 
 class FriendInvitationDetailView(APIView):
+    def get(self, request, pk):
+        """GET - Single invitation details"""
+        invitation = FriendInvitation.objects.get(pk=pk)
+        serializer = FriendInvitationSerializer(invitation)
+        return Response(serializer.data)
+
+    def post(self, request, pk):
+        """POST - send response to the invitation
+        response: accept or decline"""
+        serializer = InvitationResponseSerializer(data=request.data)
+        if serializer.is_valid():
+            invitation = get_object_or_404(FriendInvitation, pk=pk)
+            invitation.send_response(serializer.data["response"])
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        else:
+            return Response(
+                {"error": "Response must be one of the following: accept or decline"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+
+class GroupInvitationDetailView(APIView):
     def get(self, request, pk):
         """GET - Single invitation details"""
         invitation = FriendInvitation.objects.get(pk=pk)
