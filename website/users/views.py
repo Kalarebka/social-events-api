@@ -11,7 +11,12 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from .models import CustomUser, UserGroup, FriendInvitation, GroupInvitation
-from .permissions import OwnProfileOrReadOnly, UserGroupPermission, IsGroupAdmin
+from .permissions import (
+    OwnProfileOrReadOnly,
+    UserGroupPermission,
+    IsGroupAdmin,
+    InvitationsPermission,
+)
 from .serializers import (
     UserProfileSerializer,
     UserMiniSerializer,
@@ -223,7 +228,7 @@ class GroupAdminsDetailView(APIView):
 class InvitationsListView(ListAPIView):
     """GET - list of invitations
     query parameters:
-    - kind: friends/groups
+    - invite_type: friends/groups
     - category: sent/received (default: received)
     Sent - invitations sent by the user
     Received - current user's received invitations without response"""
@@ -234,22 +239,107 @@ class InvitationsListView(ListAPIView):
             return FriendInvitationSerializer
         elif invite_type == "groups":
             return GroupInvitationSerializer
-
-    serializer_class = FriendInvitationSerializer
+        else:
+            pass  # TODO has to raise error if no invite_type parameter
 
     def get_queryset(self):
         user = self.request.user
+        invite_type = self.request.query_params.get["invite_type"]
+        if invite_type == "friends":
+            qs = FriendInvitation.objects.all()
+        elif invite_type == "groups":
+            qs = GroupInvitation.objects.all()
+        else:
+            pass  # TODO has to raise error if no invite_type parameter
+
         category = self.request.query_params.get["category"]
         if category == "sent":
-            return FriendInvitation.objects.filter(sender=user)
-        return FriendInvitation.objects.filter(receiver=user, response_received=False)
+            return qs.filter(sender=user)
+        return qs.filter(receiver=user, response_received=False)
 
 
-class FriendInvitationDetailView(APIView):
+# class FriendInvitationDetailView(APIView):
+#     permission_classes = [InvitationsPermission]
+
+#     def get(self, request, pk):
+#         """GET - Single invitation details"""
+#         invitation = FriendInvitation.objects.get(pk=pk)
+#         serializer = FriendInvitationSerializer(invitation)
+#         return Response(serializer.data)
+
+#     def post(self, request, pk):
+#         """POST - send response to the invitation
+#         response: accept or decline"""
+#         serializer = InvitationResponseSerializer(data=request.data)
+#         if serializer.is_valid():
+#             invitation = get_object_or_404(FriendInvitation, pk=pk)
+#             invitation.send_response(serializer.data["response"])
+#             return Response(serializer.data, status=status.HTTP_200_OK)
+#         else:
+#             return Response(
+#                 {"error": "Response must be one of the following: accept or decline"},
+#                 status=status.HTTP_400_BAD_REQUEST,
+#             )
+
+#     def delete(self, request, pk):
+#         """DELETE: cancel the invitation (only before it receives a response)"""
+#         invitation = get_object_or_404(FriendInvitation, pk=pk)
+
+#         if invitation.response_received:
+#             return Response(
+#                 {"detail": "Response already received, invitation cannot be deleted."},
+#                 status=status.HTTP_400_BAD_REQUEST,
+#             )
+
+#         invitation.delete()
+#         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+# class GroupInvitationDetailView(APIView):
+#     permission_classes = [InvitationsPermission]
+
+#     def get(self, request, pk):
+#         """GET - Single invitation details"""
+#         invitation = GroupInvitation.objects.get(pk=pk)
+#         serializer = GroupInvitationSerializer(invitation)
+#         return Response(serializer.data)
+
+#     def post(self, request, pk):
+#         """POST - send response to the invitation
+#         response: accept or decline"""
+#         serializer = InvitationResponseSerializer(data=request.data)
+#         if serializer.is_valid():
+#             invitation = get_object_or_404(GroupInvitation, pk=pk)
+#             invitation.send_response(serializer.data["response"])
+#             return Response(serializer.data, status=status.HTTP_200_OK)
+#         else:
+#             return Response(
+#                 {"error": "Response must be one of the following: accept or decline"},
+#                 status=status.HTTP_400_BAD_REQUEST,
+#             )
+
+#     def delete(self, request, pk):
+#         """DELETE: cancel the invitation (only before it receives a response)"""
+#         invitation = get_object_or_404(GroupInvitation, pk=pk)
+
+#         if invitation.response_received:
+#             return Response(
+#                 {"detail": "Response already received, invitation cannot be deleted."},
+#                 status=status.HTTP_400_BAD_REQUEST,
+#             )
+
+#         invitation.delete()
+#         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class InvitationDetailView(APIView):
+    # Merge friends and groups invitations
+    permission_classes = [InvitationsPermission]
+
     def get(self, request, pk):
         """GET - Single invitation details"""
-        invitation = FriendInvitation.objects.get(pk=pk)
-        serializer = FriendInvitationSerializer(invitation)
+        invitation = GroupInvitation.objects.get(pk=pk)
+        serializer = GroupInvitationSerializer(invitation)
         return Response(serializer.data)
 
     def post(self, request, pk):
@@ -257,7 +347,7 @@ class FriendInvitationDetailView(APIView):
         response: accept or decline"""
         serializer = InvitationResponseSerializer(data=request.data)
         if serializer.is_valid():
-            invitation = get_object_or_404(FriendInvitation, pk=pk)
+            invitation = get_object_or_404(GroupInvitation, pk=pk)
             invitation.send_response(serializer.data["response"])
             return Response(serializer.data, status=status.HTTP_200_OK)
         else:
@@ -266,24 +356,15 @@ class FriendInvitationDetailView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
+    def delete(self, request, pk):
+        """DELETE: cancel the invitation (only before it receives a response)"""
+        invitation = get_object_or_404(GroupInvitation, pk=pk)
 
-class GroupInvitationDetailView(APIView):
-    def get(self, request, pk):
-        """GET - Single invitation details"""
-        invitation = FriendInvitation.objects.get(pk=pk)
-        serializer = FriendInvitationSerializer(invitation)
-        return Response(serializer.data)
-
-    def post(self, request, pk):
-        """POST - send response to the invitation
-        response: accept or decline"""
-        serializer = InvitationResponseSerializer(data=request.data)
-        if serializer.is_valid():
-            invitation = get_object_or_404(FriendInvitation, pk=pk)
-            invitation.send_response(serializer.data["response"])
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        else:
+        if invitation.response_received:
             return Response(
-                {"error": "Response must be one of the following: accept or decline"},
+                {"detail": "Response already received, invitation cannot be deleted."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
+
+        invitation.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)

@@ -33,3 +33,17 @@ class IsGroupAdmin(BasePermission):
         if isinstance(obj, UserGroup):
             return request.user in obj.administrators
         return True
+
+
+class InvitationsPermission(BasePermission):
+    """Sender can retrieve the invitation and delete it
+    Receiver can retriever, delete and post response to the invitation"""
+
+    def has_object_permission(self, request, view, obj):
+        if (
+            obj.sender == request.user
+            and request.method in ["GET", "DELETE"]
+            or obj.receiver == request.user
+        ):
+            return True
+        return False

@@ -7,7 +7,7 @@ from .views import (
     GroupMembersDetailView,
     GroupsDetailView,
     GroupsListView,
-    FriendInvitationDetailView,
+    InvitationDetailView,
     InvitationsListView,
     UserListView,
     UserProfileView,
@@ -34,5 +34,5 @@ urlpatterns = [
     ),
     # Invitations
     path("invitations/", InvitationsListView.as_view()),
-    path("invitations/friends/<int:pk>", FriendInvitationDetailView.as_view()),
+    path("invitations/friends/<int:pk>", InvitationDetailView.as_view()),
 ]
