@@ -41,8 +41,24 @@ class MessageTests(APITestCase):
         self.client = APIClient()
         self.client.force_authenticate(user=self.user)
 
-    def test_message_list_view(self):
+    def test_sent_messages_list_view(self):
+        url = reverse("messagebox:message_list")
+        response = self.client.get(url, {"category": "sent"})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data["results"]), 2)
+        self.assertEqual(response.data["results"][0]["sender"], self.user.pk)
+
+    def test_received_messages_list_view(self):
+        url = reverse("messagebox:message_list")
+        response = self.client.get(url, {"category": "received"})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data["results"]), 1)
+        self.assertEqual(response.data["results"][0]["receiver"], self.user.pk)
+
+    def test_messages_list_view_without_category_parameter(self):
+        # Should default to received messages
         url = reverse("messagebox:message_list")
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data["results"]), 6)
+        self.assertEqual(len(response.data["results"]), 1)
+        self.assertEqual(response.data["results"][0]["receiver"], self.user.pk)
