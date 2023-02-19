@@ -19,19 +19,14 @@ router.register("", EventViewSet, basename="events")
 
 urlpatterns = [
     path("", include(router.urls)),
+    path("<int:event_pk>/participants/", EventParticipantsListView.as_view()),
     path(
-        "<int:pk>/participants/", EventParticipantsListView.as_view()
-    ),  # list of participants, add participants (invite): post user/group/list of users/all friends
-    path(
-        "<int:pk>/participants/<int:user_pk>", EventParticipantDetailView.as_view()
-    ),  # remove participant
-    path(
-        "<int:pk>/participants/", EventOrganisersListView.as_view()
-    ),  # list organisers, post - add an organiser
-    path(
-        "<int:pk>/participants/<int:user_pk>", EventOrganiserDetailView.as_view()
-    ),  # remove organiser
-    path("invitations/", EventInvitationsListView.as_view()),  # all user's invitations
+        "<int:event_pk>/participants/<int:user_pk>",
+        EventParticipantDetailView.as_view(),
+    ),
+    path("<int:event_pk>/organisers/", EventOrganisersListView.as_view()),
+    path("<int:event_pk>/organisers/<int:user_pk>", EventOrganiserDetailView.as_view()),
+    path("invitations/", EventInvitationsListView.as_view()),
     path(
         "invitations/<int:pk>", EventInvitationDetailView.as_view()
     ),  # POST response="accept"/"decline"

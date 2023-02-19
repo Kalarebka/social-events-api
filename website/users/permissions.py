@@ -37,7 +37,7 @@ class IsGroupAdmin(BasePermission):
 
 class InvitationsPermission(BasePermission):
     """Sender can retrieve the invitation and delete it
-    Receiver can retriever, delete and post response to the invitation"""
+    Receiver can retrieve, delete and post response to the invitation"""
 
     def has_object_permission(self, request, view, obj):
         if (

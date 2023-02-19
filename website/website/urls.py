@@ -17,17 +17,32 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import include, path
-from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
+from drf_spectacular.views import (
+    SpectacularAPIView,
+    SpectacularSwaggerView,
+    SpectacularRedocView,
+)
+from dj_rest_auth.views import (
+    LoginView,
+    LogoutView,
+    PasswordChangeView,
+    PasswordResetView,
+    PasswordResetConfirmView,
+)
 
 urlpatterns = [
     path("users/", include("users.urls")),
     path("admin/", admin.site.urls),
     path("events/", include("events.urls")),
     path("messagebox/", include("messagebox.urls")),
-    path("rest-auth/", include("dj_rest_auth.urls")),
+    # dj-rest-auth endpoints:
     path("register/", include("dj_rest_auth.registration.urls")),
-    path(
-        "schema/", SpectacularAPIView.as_view(), name="schema"
-    ),  # auto schema generation
+    path("rest-auth/login/", LoginView.as_view()),
+    path("rest-auth/logout/", LogoutView.as_view()),
+    path("rest-auth/password/change/", PasswordChangeView.as_view()),
+    path("rest-auth/password/reset/", PasswordResetView.as_view()),
+    path("rest-auth/password/reset/confirm", PasswordResetConfirmView.as_view()),
+    path("schema/", SpectacularAPIView.as_view(), name="schema"),
     path("schema/swagger-ui/", SpectacularSwaggerView.as_view(url_name="schema")),
+    path("schema/redoc/", SpectacularRedocView.as_view()),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

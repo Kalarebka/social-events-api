@@ -1,31 +1,31 @@
+from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
 from rest_framework import status
 from rest_framework.generics import (
+    ListAPIView,
+    ListCreateAPIView,
     RetrieveUpdateAPIView,
     RetrieveUpdateDestroyAPIView,
-    ListAPIView,
-    RetrieveAPIView,
-    ListCreateAPIView,
 )
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from .models import CustomUser, UserGroup, FriendInvitation, GroupInvitation
+from .models import FriendInvitation, GroupInvitation, UserGroup
 from .permissions import (
+    InvitationsPermission,
+    IsGroupAdmin,
     OwnProfileOrReadOnly,
     UserGroupPermission,
-    IsGroupAdmin,
-    InvitationsPermission,
 )
 from .serializers import (
-    UserProfileSerializer,
-    UserMiniSerializer,
-    UserOwnProfileSerializer,
-    UserGroupSerializer,
-    UserGroupMiniSerializer,
     FriendInvitationSerializer,
     GroupInvitationSerializer,
     InvitationResponseSerializer,
+    UserGroupMiniSerializer,
+    UserGroupSerializer,
+    UserMiniSerializer,
+    UserOwnProfileSerializer,
+    UserProfileSerializer,
 )
 
 
@@ -44,9 +44,9 @@ class UserListView(ListAPIView):
     def get_queryset(self):
         ids = self.request.query_params.get("ids", None)
         if not ids:
-            return CustomUser.objects.all()
+            return get_user_model().objects.all()
         id_list = [int(id) for id in ids.split(",")]
-        return CustomUser.objects.filter(pk__in=id_list)
+        return get_user_model().objects.filter(pk__in=id_list)
 
 
 class UserProfileView(RetrieveUpdateAPIView):
@@ -54,7 +54,7 @@ class UserProfileView(RetrieveUpdateAPIView):
     For the currently logged in user's own profile, uses separate serializer that also returns private information.
     PUT/PATCH: User can update own profile."""
 
-    queryset = CustomUser.objects.all()
+    queryset = get_user_model().objects.all()
     permission_classes = [OwnProfileOrReadOnly]
 
     def get_serializer_class(self):
@@ -83,11 +83,11 @@ class FriendsListView(ListCreateAPIView):
 class FriendDetailView(APIView):
     def post(self, request, friend_pk):
         """Send a friend invitation to user with friend_pk"""
-        receiver = get_object_or_404(CustomUser, pk=friend_pk)
+        receiver = get_object_or_404(get_user_model(), pk=friend_pk)
         if receiver in request.user.friends.all():
             return Response(
                 {"message": "user already on friends list"},
-                status=status.HTTP_304_NOT_MODIFIED,
+                status=status.HTTP_400_BAD_REQUEST,
             )
         invitation = FriendInvitation(sender=request.user, receiver=receiver)
         invitation.save()
@@ -99,11 +99,11 @@ class FriendDetailView(APIView):
     def delete(self, request, friend_pk):
         """Remove current user and friend from each other's friend lists"""
         user = request.user
-        friend = get_object_or_404(CustomUser, pk=friend_pk)
+        friend = get_object_or_404(User, pk=friend_pk)
         if friend not in request.user.friends.all():
             return Response(
                 {"message": "no such user on friend list"},
-                status=status.HTTP_304_NOT_MODIFIED,
+                status=status.HTTP_400_BAD_REQUEST,
             )
         user.friends.remove(friend)
         return Response(
@@ -129,9 +129,9 @@ class GroupsListView(ListCreateAPIView):
     def get_queryset(self):
         ids = self.request.query_params.get("ids", None)
         if not ids:
-            return CustomUser.objects.all()
+            return get_user_model().objects.all()
         id_list = [int(id) for id in ids.split(",")]
-        return CustomUser.objects.filter(pk__in=id_list)
+        return get_user_model().objects.filter(pk__in=id_list)
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -161,11 +161,11 @@ class GroupMembersDetailView(APIView):
     def post(self, request, group_pk, user_pk):
         """Send group invitation to user. Path parameters: group_pk, user_pk"""
         group = get_object_or_404(UserGroup, pk=group_pk)
-        receiver = get_object_or_404(CustomUser, pk=user_pk)
+        receiver = get_object_or_404(get_user_model(), pk=user_pk)
         if receiver in group.members.all():
             return Response(
                 {"message": "user already a member of the group"},
-                status=status.HTTP_304_NOT_MODIFIED,
+                status=status.HTTP_400_BAD_REQUEST,
             )
         invitation = GroupInvitation(
             sender=request.user, receiver=receiver, group=group
@@ -179,11 +179,11 @@ class GroupMembersDetailView(APIView):
     def delete(self, request, group_pk, user_pk):
         """Remove user from group"""
         group = get_object_or_404(UserGroup, pk=group_pk)
-        user = get_object_or_404(CustomUser, pk=user_pk)
+        user = get_object_or_404(get_user_model(), pk=user_pk)
         if user not in group.members.all():
             return Response(
                 {"message": "user is not a member of the group"},
-                status=status.HTTP_304_NOT_MODIFIED,
+                status=status.HTTP_400_BAD_REQUEST,
             )
 
 
@@ -193,7 +193,7 @@ class GroupAdminsDetailView(APIView):
     def post(self, request, group_pk, user_pk):
         """Make another user an admin of the group"""
         group = get_object_or_404(UserGroup, pk=group_pk)
-        user = get_object_or_404(CustomUser, pk=user_pk)
+        user = get_object_or_404(get_user_model(), pk=user_pk)
 
         if user not in group.members.all():
             return Response(
@@ -211,7 +211,7 @@ class GroupAdminsDetailView(APIView):
     def delete(self, request, group_pk, user_pk):
         """Take away user's admin status"""
         group = get_object_or_404(UserGroup, pk=group_pk)
-        user = get_object_or_404(CustomUser, pk=user_pk)
+        user = get_object_or_404(get_user_model(), pk=user_pk)
         if user not in group.administrators.all():
             return Response(
                 {"message": "user is not an administrator of the group"},
@@ -246,7 +246,7 @@ class InvitationsListView(ListAPIView):
         user = self.request.user
         invite_type = self.request.query_params.get["invite_type"]
         if invite_type == "friends":
-            qs = FriendInvitation.objects.all()
+            qs = FriendInvitation.objects.all()  # dict!
         elif invite_type == "groups":
             qs = GroupInvitation.objects.all()
         else:

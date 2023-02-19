@@ -1,3 +1,6 @@
+from abc import ABC, abstractproperty
+
+from django.conf import settings
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 
@@ -26,19 +29,23 @@ class CustomUser(AbstractUser):
 class UserGroup(models.Model):
     name = models.CharField(max_length=128)
     description = models.TextField(blank=True, null=True)
-    administrators = models.ManyToManyField(CustomUser, related_name="groups_as_admin")
-    members = models.ManyToManyField(CustomUser, related_name="groups_as_member")
+    administrators = models.ManyToManyField(
+        settings.AUTH_USER_MODEL, related_name="groups_as_admin"
+    )
+    members = models.ManyToManyField(
+        settings.AUTH_USER_MODEL, related_name="groups_as_member"
+    )
 
 
 class AbstractInvitation(models.Model):
     sender = models.ForeignKey(
-        CustomUser,
+        settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         null=True,
         related_name="%(app_label)s_%(class)s_sent",
     )
     receiver = models.ForeignKey(
-        CustomUser,
+        settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         related_name="%(app_label)s_%(class)s_received",
     )
@@ -49,10 +56,10 @@ class AbstractInvitation(models.Model):
     def save(self, *args, **kwargs):
         # When the invitation is first created, send and email with notification
         if self._state.adding:
-            self.send_invitation_notification()
+            self.send_invitation_email()
         super().save(*args, **kwargs)
 
-    def send_invitation_notification(self):
+    def send_invitation_email(self):
         # send a notification email to the receiver (celery task)
         # celery task function arguments: email template file, dict with args to insert into template
         # (sender, receiver, )
@@ -60,6 +67,7 @@ class AbstractInvitation(models.Model):
 
     def send_response(self, response):
         if response == "accept":
+            self.confirmed = True
             self.confirm()
         else:
             self.response_received = True

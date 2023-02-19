@@ -2,7 +2,7 @@ from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import models
 
-from users.models import UserGroup
+from users.models import UserGroup, AbstractInvitation
 
 
 class Location(models.Model):
@@ -20,34 +20,50 @@ class Location(models.Model):
 
 
 class RecurringEventSchedule(models.Model):
-    # prototype
+    """Creates recurring events according to schedule and keeps track of all related events."""
+
+    FREQUENCY_CHOICES = [
+        ("daily", "Daily"),
+        ("weekly", "Weekly"),
+        ("monthly", "Monthly"),
+    ]
     interval = models.IntegerField()
-    time_unit = models.CharField(
-        max_length=16
-    )  # text choices for time units: day, weekday, etc.
-    start_datetime = models.DateTimeField()
-    end_datetime = models.DateTimeField()
+    frequency = models.CharField(max_length=10, choices=FREQUENCY_CHOICES)
+    # start_datetime = models.DateTimeField() use the base event's start datetime
+    end_datetime = models.DateTimeField(null=True, blank=True)
+    repeats = models.IntegerField(null=True, blank=True)
+
+    def clean(self):
+        if not self.end_datetime and not self.repeats:
+            raise ValidationError(
+                "Either end date or number of repeats must be provided."
+            )
 
     def schedule_events(self):
         # when created - create events according to the schedule with schedule foreign key set to self
-        pass
+        events_to_schedule = []
+        Event.objects.bulk_create(events_to_schedule)
 
     def delete_all_events(self):
-        # delete all events scheduled by the scheduler
+        # cancel all events scheduled by the scheduler
         pass
 
 
 class Event(models.Model):
     class EventType(models.TextChoices):
-        PERSONAL = "personal"
-        GROUP = "group"
+        PRIVATE = "private", "Private Event"
+        GROUP = "group", "Group Event"
 
     class EventStatus(models.TextChoices):
-        PLANNED = "planned"
-        IN_PROGRESS = "in progress"
-        ENDED = "ended"
+        PLANNED = "planned", "Planned"
+        IN_PROGRESS = "in progress", "In progress"
+        ENDED = "ended", "Ended"
+        CANCELLED = "cancelled", "Cancelled"
 
     event_type = models.CharField(choices=EventType.choices, max_length=15)
+    group = models.ForeignKey(
+        UserGroup, default=None, null=True, blank=True, on_delete=models.SET_NULL
+    )
     name = models.CharField(max_length=128)
     description = models.TextField()
     time_created = models.DateTimeField(auto_now_add=True)
@@ -58,8 +74,11 @@ class Event(models.Model):
         UserGroup, on_delete=models.CASCADE, null=True, blank=True
     )
     participants = models.ManyToManyField(
-        settings.AUTH_USER_MODEL, related_name="events_as_participant"
-    )  # throw this away and use invited_users/confirmed=True?
+        settings.AUTH_USER_MODEL,
+        related_name="events_as_participant",
+        through="EventInvitation",
+        through_fields=("event", "receiver"),
+    )
     start_time = models.DateTimeField()
     end_time = models.DateTimeField()
     location = models.ForeignKey(
@@ -69,19 +88,27 @@ class Event(models.Model):
         choices=EventStatus.choices, max_length=11, default=EventStatus.PLANNED
     )
     recurrence_schedule = models.ForeignKey(
-        RecurringEventSchedule, on_delete=models.SET_NULL, default=None, null=True
+        RecurringEventSchedule,
+        on_delete=models.SET_NULL,
+        default=None,
+        null=True,
+        related_name="scheduled_events",
     )
 
     def clean(self):
         if self.start_time >= self.end_time:
             raise ValidationError("Event end date must be later than start date")
 
+        if self.event_type == "group" and self.group is None:
+            raise ValidationError("Group events must have group defined.")
 
-class EventInvitation(models.Model):
-    class InvitationResponse(models.TextChoices):
-        PENDING = "pending"
-        ACCEPTED = "accepted"
-        DECLINED = "declined"
+
+class EventInvitation(AbstractInvitation):
+    # from abstract invitation:
+    # - sender, receiver, confirmed bool, response_received bool, date_sent
+    # - methods: save, send_invitation_email, send_response
+    # - to implement: confirm
+    # - override the save() method to not send emails separately but in batches for inviting a list of users?
 
     event = models.ForeignKey(
         Event,
@@ -89,9 +116,3 @@ class EventInvitation(models.Model):
         null=False,
         related_name="invited_users",
     )
-    receiver = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.CASCADE,
-        related_name="event_invitations",
-    )
-    response = models.CharField(choices=InvitationResponse.choices, max_length=15)

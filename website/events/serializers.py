@@ -4,6 +4,9 @@ from .models import Event, Location
 
 
 class EventRetrieveSerializer(serializers.ModelSerializer):
+    organiser_ids = serializers.SerializerMethodField("get_organiser_ids")
+    participant_ids = serializers.SerializerMethodField("get_participant_ids")
+
     class Meta:
         model = Event
         fields = [
@@ -11,14 +14,26 @@ class EventRetrieveSerializer(serializers.ModelSerializer):
             "event_type",
             "description",
             "time_created",
-            # "organisers",
-            # "participants",
+            "organiser_ids",
+            "participant_ids",
             "start_time",
             "end_time",
-            "location",  # Full location info
+            "location_id",
             "status",
             "recurrence_schedule_id",
         ]
+
+    def get_organiser_ids(self, obj):
+        return [organiser.id for organiser in obj.organisers.all()]
+
+    def get_participant_ids(self, obj):
+        return [user.id for user in obj.participants.all()]
+
+
+class EventRetrieveMiniSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Event
+        fields = ["name", "event_type"]
 
 
 class EventCreateUpdateSerializer(serializers.ModelSerializer):
@@ -30,7 +45,7 @@ class EventCreateUpdateSerializer(serializers.ModelSerializer):
             "description",
             "start_time",
             "end_time",
-            "location_id",  # Id only
+            "location_id",
             "recurrence_schedule_id",
         ]
 
