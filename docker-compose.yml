@@ -30,6 +30,7 @@ services:
     build: 
       context: ./
       dockerfile: ./website/Dockerfile
+    command: "python manage.py runserver 0.0.0.0:8080"
     volumes:
       - ./website:/website
     ports:
@@ -47,6 +48,21 @@ services:
     depends_on:
       - postgres_db
       - redis
+
+  celery_worker:
+    build:
+      context: .
+      dockerfile: ./website/Dockerfile
+    command: "celery -A website worker --loglevel INFO"
+    volumes:
+      - ./website:/website
+    env_file:
+     - .env
+    environment:
+      - BROKER_URL=${REDIS_URL}
+    depends_on:
+      - redis
+
 
 
 volumes:

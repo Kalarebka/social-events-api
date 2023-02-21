@@ -1,7 +1,10 @@
 from django.template.loader import render_to_string
 from django.core.mail import send_mail
 
+from celery import shared_task
 
+
+@shared_task
 def send_invitation_email_task(sender, receiver, invite_to, template=None):
     # if not template use default template
     # maybe do a default template variable in django settings?

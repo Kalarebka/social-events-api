@@ -196,3 +196,8 @@ SPECTACULAR_SETTINGS = {
     "DESCRIPTION": "Create and manage social events",
     "VERSION": "1.0",
 }
+
+
+# Celery settings
+CELERY_BROKER_URL = os.getenv("BROKER_URL")
+CELERY_TIMEZONE = "Europe/Warsaw"
