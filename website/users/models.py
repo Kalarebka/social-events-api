@@ -36,6 +36,9 @@ class UserGroup(models.Model):
         settings.AUTH_USER_MODEL, related_name="groups_as_member"
     )
 
+    def __str__(self):
+        return self.name
+
 
 class AbstractInvitation(models.Model):
     sender = models.ForeignKey(

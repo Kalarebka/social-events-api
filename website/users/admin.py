@@ -6,11 +6,9 @@ from .models import CustomUser, UserGroup, FriendInvitation, GroupInvitation
 
 
 class FromUserInline(admin.TabularInline):
-    model = (
-        CustomUser.friends.through
-    )  # intermediate model for many-to-many relationship
+    model = CustomUser.friends.through
     fk_name = "from_customuser"
-    extra = 1  # num of extra empty lines shown to add
+    extra = 1
 
 
 class ToUserInline(admin.TabularInline):
@@ -38,7 +36,71 @@ class CustomUserAdmin(UserAdmin):
     inlines = [FromUserInline, ToUserInline]
 
 
+class UserGroupAdmin(admin.ModelAdmin):
+    list_display = ("name", "get_admins", "num_members")
+
+    def get_admins(self, obj):
+        return ", ".join([admin.username for admin in obj.administrators.all()])
+
+    get_admins.short_description = "Admins"
+
+    def num_members(self, obj):
+        return obj.members.count()
+
+    num_members.short_description = "Number of members"
+
+
+class FriendInvitationAdmin(admin.ModelAdmin):
+    list_display = (
+        "sender",
+        "receiver",
+        "confirmed",
+        "response_received",
+        "date_sent",
+        "status",
+    )
+    search_fields = (
+        "sender__username",
+        "receiver__username",
+    )
+
+    def status(self, obj):
+        if obj.confirmed:
+            return "confirmed"
+        elif obj.response_received:
+            return "declined"
+        else:
+            return "pending"
+
+    status.short_description = "Status"
+
+
+class GroupInvitationAdmin(admin.ModelAdmin):
+    list_display = (
+        "group",
+        "receiver",
+        "confirmed",
+        "response_received",
+        "date_sent",
+        "status",
+    )
+    search_fields = (
+        "group__name",
+        "receiver__username",
+    )
+
+    def status(self, obj):
+        status_dict = {
+            (False, False): "pending",
+            (True, False): "confirmed",
+            (True, True): "declined",
+        }
+        return status_dict[(obj.confirmed, obj.response_received)]
+
+    status.short_description = "Status"
+
+
 admin.site.register(CustomUser, CustomUserAdmin)
-admin.site.register(UserGroup)
-admin.site.register(FriendInvitation)
-admin.site.register(GroupInvitation)
+admin.site.register(UserGroup, UserGroupAdmin)
+admin.site.register(FriendInvitation, FriendInvitationAdmin)
+admin.site.register(GroupInvitation, GroupInvitationAdmin)
