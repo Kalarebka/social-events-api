@@ -9,23 +9,28 @@ class Migration(migrations.Migration):
 
     dependencies = [
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
-        ('messagebox', '0003_alter_message_options'),
+        ("messagebox", "0003_alter_message_options"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='message',
-            name='deleted_by_receiver',
+            model_name="message",
+            name="deleted_by_receiver",
             field=models.BooleanField(default=False),
         ),
         migrations.AddField(
-            model_name='message',
-            name='deleted_by_sender',
+            model_name="message",
+            name="deleted_by_sender",
             field=models.BooleanField(default=False),
         ),
         migrations.AlterField(
-            model_name='message',
-            name='receiver',
-            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='received_messages', to=settings.AUTH_USER_MODEL),
+            model_name="message",
+            name="receiver",
+            field=models.ForeignKey(
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                related_name="received_messages",
+                to=settings.AUTH_USER_MODEL,
+            ),
         ),
     ]

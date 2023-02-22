@@ -27,10 +27,6 @@ class Message(models.Model):
         ordering = ["-date_sent"]
 
     def __str__(self):
-        return self.title
-
-
-class MessageTemplate(models.Model):
-    # templates to be used when creating auto messages
-    # in db or in text files in static?
-    pass
+        return (
+            f'"{self.title}" - from {self.sender.username} to {self.receiver.username}'
+        )

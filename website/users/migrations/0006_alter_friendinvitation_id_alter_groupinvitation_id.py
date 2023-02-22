@@ -6,18 +6,18 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('users', '0005_alter_customuser_options_friendinvitation_date_sent_and_more'),
+        ("users", "0005_alter_customuser_options_friendinvitation_date_sent_and_more"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='friendinvitation',
-            name='id',
+            model_name="friendinvitation",
+            name="id",
             field=models.AutoField(primary_key=True, serialize=False),
         ),
         migrations.AlterField(
-            model_name='groupinvitation',
-            name='id',
+            model_name="groupinvitation",
+            name="id",
             field=models.AutoField(primary_key=True, serialize=False),
         ),
     ]
