@@ -35,6 +35,7 @@ class UserGroup(models.Model):
     members = models.ManyToManyField(
         settings.AUTH_USER_MODEL, related_name="groups_as_member"
     )
+    deleted = models.BooleanField(default=False)
 
     def __str__(self):
         return self.name
