@@ -1,9 +1,9 @@
 from abc import ABC, abstractmethod
 
 from django.contrib.auth import get_user_model
-from django.http import Http400
 from django.shortcuts import get_object_or_404
 from rest_framework import status
+from rest_framework.exceptions import ValidationError
 from rest_framework.generics import (
     ListAPIView,
     ListCreateAPIView,
@@ -22,7 +22,6 @@ from .permissions import (
 from .serializers import (
     FriendInvitationSerializer,
     GroupInvitationSerializer,
-    InvitationResponseSerializer,
     UserGroupMiniSerializer,
     UserGroupSerializer,
     UserMiniSerializer,
@@ -175,6 +174,14 @@ class GroupMembersDetailView(APIView):
                 {"message": "user is not a member of the group"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
+        group.members.remove(user)
+        # User can't be an admin if he's not a member of the group
+        group.administrators.remove(user)
+
+        return Response(
+            {"message": "user removed from group"},
+            status=status.HTTP_200_OK,
+        )
 
 
 class GroupAdminsDetailView(APIView):
@@ -192,7 +199,6 @@ class GroupAdminsDetailView(APIView):
             )
 
         group.administrators.add(user)
-        group.save()
         return Response(
             {"message": "user added to group admins"},
             status=status.HTTP_200_OK,
@@ -232,31 +238,37 @@ class InvitationsListView(ListAPIView):
     - invite_type: friends/groups
     - category: sent/received (default: received)
     Sent - invitations sent by the user
-    Received - current user's received invitations without response"""
+    Received - current user's received invitations without response
+    """
 
     def get_queryset(self):
         user = self.request.user
-        invite_type = self.request.query_params.get["invite_type"]
-        if not invite_type:
-            raise Http400
+        invite_type = self.request.query_params.get("invite_type", None)
+
         queryset_dict = {
-            "friends": FriendInvitation.objects.all(),
-            "groups": GroupInvitation.objects.all(),
+            "friend": FriendInvitation.objects.all(),
+            "group": GroupInvitation.objects.all(),
         }
+
+        if invite_type not in queryset_dict:
+            raise ValidationError(
+                detail="invite_type is required and must be 'friend' or 'group"
+            )
+
         qs = queryset_dict[invite_type]
 
-        category = self.request.query_params.get["category"]
+        category = self.request.query_params.get("category")
         if category == "sent":
             return qs.filter(sender=user)
         return qs.filter(receiver=user, response_received=False)
 
     def get_serializer_class(self):
-        # list() method in list mixin calls get_queryset first, so no need to check
-        # again if invite_type was provided
-        invite_type = self.request.query_params.get["invite_type"]
+        # list() method in ListModelMixin calls get_queryset first,
+        # so no need to check again if invite_type was provided
+        invite_type = self.request.query_params.get("invite_type")
         serializer_dict = {
-            "friends": FriendInvitationSerializer,
-            "groups": GroupInvitationSerializer,
+            "friend": FriendInvitationSerializer,
+            "group": GroupInvitationSerializer,
         }
         return serializer_dict[invite_type]
 
@@ -264,12 +276,13 @@ class InvitationsListView(ListAPIView):
 class AbstractInvitationDetailView(ABC, APIView):
     """Handle different types of invitations.
     GET - get single invitation details
-    DELETE - delete the invitation (only in response not received)"""
+    DELETE - delete the invitation (only in response not received)
+    """
 
     permission_classes = [InvitationsPermission]
 
     @abstractmethod
-    def get_serializer_class(self):
+    def get_serializer(self, qs):
         pass
 
     @abstractmethod
@@ -279,12 +292,14 @@ class AbstractInvitationDetailView(ABC, APIView):
     def get(self, request, pk):
         """GET - Single invitation details"""
         invitation = self.get_object(pk)
-        serializer = self.get_serializer_class(invitation)
+        self.check_object_permissions(request, invitation)
+        serializer = self.get_serializer(invitation)
         return Response(serializer.data)
 
     def delete(self, request, pk):
         """DELETE: cancel the invitation"""
         invitation = self.get_object(pk)
+        self.check_object_permissions(request, invitation)
 
         if invitation.response_received:
             return Response(
@@ -297,34 +312,53 @@ class AbstractInvitationDetailView(ABC, APIView):
 
 
 class FriendInvitationDetailView(AbstractInvitationDetailView):
-    def get_serializer_class(self):
-        return FriendInvitationSerializer
+    def get_serializer(self, qs):
+        return FriendInvitationSerializer(qs)
 
     def get_object(self, pk):
         return get_object_or_404(FriendInvitation, pk=pk)
 
 
 class GroupInvitationDetailView(AbstractInvitationDetailView):
-    def get_serializer_class(self):
-        return GroupInvitationSerializer
+    def get_serializer(self, qs):
+        return GroupInvitationSerializer(qs)
 
     def get_object(self, pk):
         return get_object_or_404(GroupInvitation, pk=pk)
 
 
-class InvitationResponseView(APIView):
-    """
-    Receive responses to invitations
-    """
+# TODO
+# only receiver can respond to an invitation
+# for confirmation by email - generate a token for each invitation, then send it in the email link
+# -> in the get() method get object by token not by pk // or get by pk, but check token against the db
+# in post() method get pk from url, check if user is invitation.receiver
 
-    def get(self, request, pk):
-        # Accepting by GET method for compatibility with invitation response links in email
-        invitation_response = request.query_params.get("response", None)
-        if invitation_response in ["accept", "decline"]:
-            invitation = get_object_or_404(GroupInvitation, pk=pk)
-            invitation.send_response(invitation_response)
-            return Response(status=status.HTTP_200_OK)
-        return Response(
-            {"error": "Response must be one of the following: accept or decline"},
-            status=status.HTTP_400_BAD_REQUEST,
-        )
+
+# class AbstractInvitationResponseView(ABC, APIView):
+#     """
+#     Receive responses to invitations
+#     """
+
+#     @abstractmethod
+#     def get_object(self):
+#         pass
+
+#     def get(self, request, pk):
+#         # Accepting by GET method for compatibility with invitation response links in email
+#         invitation_response = request.query_params.get("response", None)
+#         if invitation_response in ["accept", "decline"]:
+#             invitation = get_object_or_404(GroupInvitation, pk=pk)
+#             invitation.send_response(invitation_response)
+#             return Response(status=status.HTTP_200_OK)
+#         return Response(
+#             {"error": "Response must be one of the following: accept or decline"},
+#             status=status.HTTP_400_BAD_REQUEST,
+#         )
+
+
+# class FriendInvitationResponseView(AbstractInvitationResponseView):
+#     pass
+
+
+# class GroupInvitationResponseView(AbstractInvitationResponseView):
+#     pass

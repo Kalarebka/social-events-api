@@ -11,7 +11,6 @@ from .views import (
     InvitationsListView,
     UserListView,
     UserProfileView,
-    InvitationResponseView,
 )
 
 app_name = "users"
