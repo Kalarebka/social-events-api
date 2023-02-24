@@ -1,4 +1,5 @@
 from abc import ABC, abstractproperty
+from uuid import uuid4
 
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser
@@ -41,7 +42,7 @@ class UserGroup(models.Model):
         return self.name
 
 
-class AbstractInvitation(models.Model):
+class AbstractInvitation(ABC, models.Model):
     sender = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
@@ -56,17 +57,22 @@ class AbstractInvitation(models.Model):
     confirmed = models.BooleanField(default=False)
     response_received = models.BooleanField(default=False)
     date_sent = models.DateTimeField(auto_now_add=True)
+    # Email response token - 128 bit UUID saved as 32 character hexadecimal str
+    email_response_token = models.CharField(max_length=32, unique=True)
 
     def save(self, *args, **kwargs):
-        # When the invitation is first created, send and email with notification
+        #
+        # When the invitation is first created, create invitation email and email_response_token
+        # task to send the email will be called in view after creating invitation,
+        # to be able to send many invitations at once
         if self._state.adding:
-            self.send_invitation_email()
+            self.token = uuid4().hex
+            self.create_invitation_email()
         super().save(*args, **kwargs)
 
-    def send_invitation_email(self):
-        # send a notification email to the receiver (celery task)
-        # celery task function arguments: email template file, dict with args to insert into template
-        # (sender, receiver, )
+    def create_invitation_email(self):
+        # Return InvitationEmail object containing urls to confirm and decline the invitation
+        # with a confirmation token
         pass
 
     def send_response(self, response):
@@ -87,8 +93,6 @@ class FriendInvitation(AbstractInvitation):
     def confirm(self):
         self.sender.friends.add(self.receiver)
         self.receiver.friends.add(self.sender)
-        self.sender.save()
-        self.receiver.save()
 
 
 class GroupInvitation(AbstractInvitation):
@@ -98,4 +102,12 @@ class GroupInvitation(AbstractInvitation):
 
     def confirm(self):
         self.group.members.add(self.receiver)
-        self.group.save()
+
+
+class InvitationEmail(models.Model):
+    sender = models.EmailField()
+    receiver = models.EmailField()
+    confirm_url = models.URLField()
+    decline_url = models.URLField()
+    subject = models.CharField(max_length=200)
+    message = models.TextField()
