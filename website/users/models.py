@@ -60,6 +60,13 @@ class AbstractInvitation(ABC, models.Model):
     # Email response token - 128 bit UUID saved as 32 character hexadecimal str
     email_response_token = models.CharField(max_length=32, unique=True)
 
+    # Invitation email template
+    @property
+    def get_invitation_email_template(self):
+        raise NotImplementedError(
+            "Invitation email template property must be implemented."
+        )
+
     def save(self, *args, **kwargs):
         #
         # When the invitation is first created, create invitation email and email_response_token
@@ -94,6 +101,10 @@ class FriendInvitation(AbstractInvitation):
         self.sender.friends.add(self.receiver)
         self.receiver.friends.add(self.sender)
 
+    @property
+    def get_invitation_email_template(self):
+        pass
+
 
 class GroupInvitation(AbstractInvitation):
     group = models.ForeignKey(
@@ -102,6 +113,10 @@ class GroupInvitation(AbstractInvitation):
 
     def confirm(self):
         self.group.members.add(self.receiver)
+
+    @property
+    def get_invitation_email_template(self):
+        pass
 
 
 class InvitationEmail(models.Model):

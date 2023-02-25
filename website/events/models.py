@@ -29,7 +29,7 @@ class RecurringEventSchedule(models.Model):
     ]
     interval = models.IntegerField()
     frequency = models.CharField(max_length=10, choices=FREQUENCY_CHOICES)
-    # start_datetime = models.DateTimeField() use the base event's start datetime
+    # start_datetime - use the base event's start datetime
     end_datetime = models.DateTimeField(null=True, blank=True)
     repeats = models.IntegerField(null=True, blank=True)
 
@@ -50,28 +50,38 @@ class RecurringEventSchedule(models.Model):
 
 
 class Event(models.Model):
+
+    # TextChoices enums
     class EventType(models.TextChoices):
-        PRIVATE = "private", "Private Event"
-        GROUP = "group", "Group Event"
+        PRIVATE = ("private", "Private Event")
+        GROUP = ("group", "Group Event")
 
     class EventStatus(models.TextChoices):
-        PLANNED = "planned", "Planned"
-        IN_PROGRESS = "in progress", "In progress"
-        ENDED = "ended", "Ended"
-        CANCELLED = "cancelled", "Cancelled"
-
+        PLANNED = ("planned", "Planned")
+        IN_PROGRESS = ("in progress", "In progress")
+        ENDED = ("ended", "Ended")
+        CANCELLED = ("cancelled", "Cancelled")
+11
+    # Basic info
     event_type = models.CharField(choices=EventType.choices, max_length=15)
-    group = models.ForeignKey(
-        UserGroup, default=None, null=True, blank=True, on_delete=models.SET_NULL
-    )
     name = models.CharField(max_length=128)
     description = models.TextField()
     time_created = models.DateTimeField(auto_now_add=True)
+    status = models.CharField(
+        choices=EventStatus.choices, max_length=11, default=EventStatus.PLANNED
+    )
+    start_time = models.DateTimeField()
+    end_time = models.DateTimeField()
+    location = models.ForeignKey(
+        Location, on_delete=models.SET_NULL, blank=True, null=True
+    )
+
+    # Group and users
+    group = models.ForeignKey(
+        UserGroup, default=None, null=True, blank=True, on_delete=models.SET_NULL
+    )
     organisers = models.ManyToManyField(
         settings.AUTH_USER_MODEL, related_name="events_as_organiser"
-    )
-    group = models.ForeignKey(
-        UserGroup, on_delete=models.CASCADE, null=True, blank=True
     )
     participants = models.ManyToManyField(
         settings.AUTH_USER_MODEL,
@@ -79,21 +89,22 @@ class Event(models.Model):
         through="EventInvitation",
         through_fields=("event", "receiver"),
     )
-    start_time = models.DateTimeField()
-    end_time = models.DateTimeField()
-    location = models.ForeignKey(
-        Location, on_delete=models.SET_NULL, blank=True, null=True
-    )
-    status = models.CharField(
-        choices=EventStatus.choices, max_length=11, default=EventStatus.PLANNED
-    )
+
+    # Recurring events
     recurrence_schedule = models.ForeignKey(
         RecurringEventSchedule,
         on_delete=models.SET_NULL,
         default=None,
         null=True,
+        blank=True,
         related_name="scheduled_events",
     )
+
+    def save(self, *args, **kwargs):
+        # if creating the event (!!!!or if start/end date was changed),
+        # create a task to change event status at that time
+        # if event type is group event, send invitations to all group members
+        super().save(*args, **kwargs)
 
     def clean(self):
         if self.start_time >= self.end_time:
@@ -116,3 +127,10 @@ class EventInvitation(AbstractInvitation):
         null=False,
         related_name="invited_users",
     )
+
+    def confirm(self):
+        self.confirmed = True
+
+    @property
+    def get_invitation_email_template(self):
+        pass

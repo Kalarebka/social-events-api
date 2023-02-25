@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from .models import Event, Location
+from .models import Event, Location, RecurringEventSchedule, EventInvitation
 
 
 class EventRetrieveSerializer(serializers.ModelSerializer):
@@ -56,3 +56,14 @@ class LocationSerializer(serializers.ModelSerializer):
         exclude = ["saved_by"]
 
     # add validators for address fields
+
+
+class RecurringEventScheduleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = RecurringEventSchedule
+        fields = ["id", "interval", "frequency", "end_datetime", "repeats"]
+
+
+class EventInvitationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = EventInvitation
