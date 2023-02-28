@@ -41,7 +41,11 @@ urlpatterns = [
     path("rest-auth/logout/", LogoutView.as_view()),
     path("rest-auth/password/change/", PasswordChangeView.as_view()),
     path("rest-auth/password/reset/", PasswordResetView.as_view()),
-    path("rest-auth/password/reset/confirm", PasswordResetConfirmView.as_view()),
+    path(
+        "rest-auth/password/reset/confirm/<str:uidb64>/<str:token>",
+        PasswordResetConfirmView.as_view(),
+        name="password_reset_confirm",
+    ),
     path("schema/", SpectacularAPIView.as_view(), name="schema"),
     path("schema/swagger-ui/", SpectacularSwaggerView.as_view(url_name="schema")),
     path("schema/redoc/", SpectacularRedocView.as_view()),
