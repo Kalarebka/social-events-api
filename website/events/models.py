@@ -2,7 +2,8 @@ from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import models
 
-from users.models import UserGroup, AbstractInvitation
+from invitations.models import AbstractInvitation
+from users.models import UserGroup
 
 
 class Location(models.Model):
@@ -61,7 +62,7 @@ class Event(models.Model):
         IN_PROGRESS = ("in progress", "In progress")
         ENDED = ("ended", "Ended")
         CANCELLED = ("cancelled", "Cancelled")
-11
+
     # Basic info
     event_type = models.CharField(choices=EventType.choices, max_length=15)
     name = models.CharField(max_length=128)
