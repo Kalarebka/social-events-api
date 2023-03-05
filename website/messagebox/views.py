@@ -1,10 +1,13 @@
+from django.http import Http404
+from django.contrib.auth import get_user_model
+from django.shortcuts import get_object_or_404
 from rest_framework.generics import ListCreateAPIView, RetrieveDestroyAPIView
 from rest_framework.response import Response
 
-
-from .models import Message
-from .permissions import MessageSenderOrReceiver
-from .serializers import MessageSerializer
+from .db_helpers import get_message_thread
+from .models import Message, MessageThread
+from .permissions import MessageSenderOrReceiver, MessageThreadOwner
+from .serializers import MessageSerializer, MessageThreadSerializer
 
 
 class MessageListView(ListCreateAPIView):
@@ -55,5 +58,24 @@ class MessageDetailView(RetrieveDestroyAPIView):
         if instance.sender == self.request.user:
             instance.deleted_by_sender = True
         else:
-            instance.delete_by_receiver = True
+            instance.deleted_by_receiver = True
         instance.save()
+
+
+class MessageThreadDetailView(RetrieveDestroyAPIView):
+    """
+    GET - retrieve message thread between the current user and user_id
+    DELETE - delete all messages in the thread
+    """
+
+    queryset = MessageThread.objects.all()
+    serializer_class = MessageThreadSerializer
+    permission_classes = [MessageThreadOwner]
+
+    def get_object(self):
+        other_user_id = self.kwargs.get("user_pk")
+        other_user = get_object_or_404(get_user_model(), pk=other_user_id)
+        message_thread = get_message_thread(self.request.user, other_user)
+        if not message_thread:
+            raise Http404()
+        return message_thread
