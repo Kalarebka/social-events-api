@@ -182,6 +182,8 @@ REST_FRAMEWORK = {
 # During development and testing output emails to console
 EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 
+DEFAULT_FROM_EMAIL = "noreply@email.com"
+
 # for allauth
 SITE_ID = 1
 

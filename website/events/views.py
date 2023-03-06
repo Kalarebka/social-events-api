@@ -40,7 +40,6 @@ class EventViewSet(ModelViewSet):
 
 class EventParticipantDetailView(APIView):
     permission_classes = [EventPermission]
-    # add permission checks in methods
 
     def post(self, request, event_pk, user_pk):
         """Send event invitation to user. Path parameters: event_pk, user_pk"""

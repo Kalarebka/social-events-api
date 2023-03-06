@@ -1,4 +1,3 @@
-from abc import ABC, abstractproperty
 from uuid import uuid4
 
 from django.conf import settings
@@ -23,27 +22,20 @@ class AbstractInvitation(models.Model):
     # Email response token - 128 bit UUID saved as 32 character hexadecimal str
     email_response_token = models.CharField(max_length=32, unique=True)
 
-    # Invitation email template
+    # Invitation email properties
     @property
-    def get_invitation_email_template(self):
-        raise NotImplementedError(
-            "Invitation email template property must be implemented."
-        )
+    def email_template(self):
+        raise NotImplementedError()
+
+    @property
+    def email_data(self):
+        raise NotImplementedError()
 
     def save(self, *args, **kwargs):
-        #
-        # When the invitation is first created, create invitation email and email_response_token
-        # task to send the email will be called in view after creating invitation,
-        # to be able to send many invitations at once
+        # When the invitation is first created, create email_response_token
         if self._state.adding:
             self.token = uuid4().hex
-            self.create_invitation_email()
         super().save(*args, **kwargs)
-
-    def create_invitation_email(self):
-        # Return InvitationEmail object containing urls to confirm and decline the invitation
-        # with a confirmation token
-        pass
 
     def send_response(self, response):
         if response == "accept":
@@ -53,7 +45,7 @@ class AbstractInvitation(models.Model):
             self.response_received = True
 
     def confirm(self):
-        pass
+        raise NotImplementedError()
 
     class Meta:
         abstract = True
