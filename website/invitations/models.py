@@ -22,15 +22,6 @@ class AbstractInvitation(models.Model):
     # Email response token - 128 bit UUID saved as 32 character hexadecimal str
     email_response_token = models.CharField(max_length=32, unique=True)
 
-    # Invitation email properties
-    @property
-    def email_template(self):
-        raise NotImplementedError()
-
-    @property
-    def email_data(self):
-        raise NotImplementedError()
-
     def save(self, *args, **kwargs):
         # When the invitation is first created, create email_response_token
         if self._state.adding:
@@ -49,12 +40,3 @@ class AbstractInvitation(models.Model):
 
     class Meta:
         abstract = True
-
-
-class InvitationEmail(models.Model):
-    sender = models.EmailField()
-    receiver = models.EmailField()
-    confirm_url = models.URLField()
-    decline_url = models.URLField()
-    subject = models.CharField(max_length=200)
-    message = models.TextField()
