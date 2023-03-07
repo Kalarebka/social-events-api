@@ -30,10 +30,10 @@ class UserGroup(models.Model):
     name = models.CharField(max_length=128)
     description = models.TextField(blank=True, null=True)
     administrators = models.ManyToManyField(
-        settings.AUTH_USER_MODEL, related_name="groups_as_admin"
+        settings.AUTH_USER_MODEL, related_name="administered_usergroups"
     )
     members = models.ManyToManyField(
-        settings.AUTH_USER_MODEL, related_name="groups_as_member"
+        settings.AUTH_USER_MODEL, related_name="usergroups"
     )
     deleted = models.BooleanField(default=False)
 

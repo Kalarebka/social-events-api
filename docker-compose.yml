@@ -30,6 +30,7 @@ services:
     build: 
       context: ./
       dockerfile: ./website/Dockerfile
+    container_name: website
     command: "python manage.py runserver 0.0.0.0:8080"
     volumes:
       - ./website:/website

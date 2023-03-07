@@ -82,11 +82,11 @@ class Event(models.Model):
         UserGroup, default=None, null=True, blank=True, on_delete=models.SET_NULL
     )
     organisers = models.ManyToManyField(
-        settings.AUTH_USER_MODEL, related_name="events_as_organiser"
+        settings.AUTH_USER_MODEL, related_name="organised_events"
     )
     participants = models.ManyToManyField(
         settings.AUTH_USER_MODEL,
-        related_name="events_as_participant",
+        related_name="events",
         through="EventInvitation",
         through_fields=("event", "receiver"),
     )

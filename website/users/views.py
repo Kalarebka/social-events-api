@@ -278,16 +278,16 @@ class FriendInvitationDetailView(AbstractInvitationDetailView):
     def get_serializer(self, qs):
         return FriendInvitationSerializer(qs)
 
-    def get_object(self, pk):
-        return get_object_or_404(FriendInvitation, pk=pk)
+    def get_invitation_model(self):
+        return FriendInvitation
 
 
 class GroupInvitationDetailView(AbstractInvitationDetailView):
     def get_serializer(self, qs):
         return GroupInvitationSerializer(qs)
 
-    def get_object(self, pk):
-        return get_object_or_404(GroupInvitation, pk=pk)
+    def get_invitation_model(self):
+        return GroupInvitation
 
 
 # class FriendInvitationResponseView(AbstractInvitationResponseView):

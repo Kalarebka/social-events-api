@@ -1,5 +1,6 @@
 from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import status
 from rest_framework.generics import (
     ListCreateAPIView,
@@ -26,11 +27,16 @@ User = get_user_model()
 
 class EventViewSet(ModelViewSet):
     permission_classes = [EventPermission]
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = {
+        "status": ["exact"],
+        "event_type": ["exact"],
+    }
 
     def get_queryset(self):
-        # todo filter by user.request in participants
-        # filter by query parameters: status
-        return Event.objects.all()
+        # Only events in which the user is a participant
+        user = self.request.user
+        return user.events
 
     def get_serializer_class(self):
         if self.request.method == "GET":
@@ -91,8 +97,8 @@ class EventInvitationDetailView(AbstractInvitationDetailView):
     def get_serializer(self, qs):
         return EventInvitationSerializer(qs)
 
-    def get_object(self, pk):
-        return get_object_or_404(EventInvitation, pk=pk)
+    def get_invitation_model(self):
+        return EventInvitation
 
 
 class LocationsListView(ListCreateAPIView):
