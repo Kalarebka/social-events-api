@@ -1,28 +1,31 @@
 from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
+
 from rest_framework import status
 from rest_framework.generics import (
+    CreateAPIView,
     ListCreateAPIView,
     RetrieveUpdateDestroyAPIView,
-    CreateAPIView,
 )
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
 
-from users.views import AbstractInvitationDetailView
+from invitations.views import (
+    AbstractInvitationDetailView,
+    AbstractInvitationResponseView,
+)
+
 from .models import Event, EventInvitation
 from .permissions import EventPermission
 from .serializers import (
     EventCreateUpdateSerializer,
+    EventInvitationSerializer,
     EventRetrieveSerializer,
     LocationSerializer,
     RecurringEventScheduleSerializer,
-    EventInvitationSerializer,
 )
-
-User = get_user_model()
 
 
 class EventViewSet(ModelViewSet):
@@ -67,7 +70,7 @@ class EventParticipantDetailView(APIView):
 
     def delete(self, request, event_pk, user_pk):
         "Remove user from event participants"
-        user_to_remove = get_object_or_404(User, pk=user_pk)
+        user_to_remove = get_object_or_404(get_user_model(), pk=user_pk)
         event = get_object_or_404(Event, pk=event_pk)
         if user_to_remove in event.participants.all():
             return Response(
@@ -97,6 +100,11 @@ class EventInvitationDetailView(AbstractInvitationDetailView):
     def get_serializer(self, qs):
         return EventInvitationSerializer(qs)
 
+    def get_invitation_model(self):
+        return EventInvitation
+
+
+class EventInvitationResponseView(AbstractInvitationResponseView):
     def get_invitation_model(self):
         return EventInvitation
 

@@ -46,10 +46,6 @@ class FriendInvitation(AbstractInvitation):
         self.sender.friends.add(self.receiver)
         self.receiver.friends.add(self.sender)
 
-    @property
-    def get_invitation_email_template(self):
-        pass
-
 
 class GroupInvitation(AbstractInvitation):
     group = models.ForeignKey(
@@ -58,7 +54,3 @@ class GroupInvitation(AbstractInvitation):
 
     def confirm(self):
         self.group.members.add(self.receiver)
-
-    @property
-    def get_invitation_email_template(self):
-        pass

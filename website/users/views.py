@@ -290,9 +290,11 @@ class GroupInvitationDetailView(AbstractInvitationDetailView):
         return GroupInvitation
 
 
-# class FriendInvitationResponseView(AbstractInvitationResponseView):
-#     pass
+class FriendInvitationResponseView(AbstractInvitationResponseView):
+    def get_invitation_model(self):
+        return FriendInvitation
 
 
-# class GroupInvitationResponseView(AbstractInvitationResponseView):
-#     pass
+class GroupInvitationResponseView(AbstractInvitationResponseView):
+    def get_invitation_model(self):
+        return GroupInvitation

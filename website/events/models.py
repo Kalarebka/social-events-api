@@ -116,11 +116,6 @@ class Event(models.Model):
 
 
 class EventInvitation(AbstractInvitation):
-    # from abstract invitation:
-    # - sender, receiver, confirmed bool, response_received bool, date_sent
-    # - methods: save, send_invitation_email, send_response
-    # - to implement: confirm
-    # - override the save() method to not send emails separately but in batches for inviting a list of users?
 
     event = models.ForeignKey(
         Event,
@@ -131,7 +126,3 @@ class EventInvitation(AbstractInvitation):
 
     def confirm(self):
         self.confirmed = True
-
-    @property
-    def get_invitation_email_template(self):
-        pass
