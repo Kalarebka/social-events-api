@@ -1,3 +1,4 @@
+from django.core.exceptions import ValidationError
 from rest_framework import serializers
 
 from .models import Event, Location, RecurringEventSchedule, EventInvitation
@@ -55,7 +56,15 @@ class LocationSerializer(serializers.ModelSerializer):
         model = Location
         exclude = ["saved_by"]
 
-    # add validators for address fields
+    def validate_latitude(self, value):
+        if value < -90 or value > 90:
+            raise ValidationError("Latitude must be between -90 and 90.")
+        return value
+
+    def validate_longitude(self, value):
+        if value < -180 or value > 180:
+            raise ValidationError("Longitude must be between -180 and 180.")
+        return value
 
 
 class RecurringEventScheduleSerializer(serializers.ModelSerializer):

@@ -4,6 +4,7 @@ from django.db import models
 
 from invitations.models import AbstractInvitation
 from users.models import UserGroup
+from .constants import EventType, EventStatus, FrequencyChoices
 
 
 class Location(models.Model):
@@ -23,14 +24,9 @@ class Location(models.Model):
 class RecurringEventSchedule(models.Model):
     """Creates recurring events according to schedule and keeps track of all related events."""
 
-    FREQUENCY_CHOICES = [
-        ("daily", "Daily"),
-        ("weekly", "Weekly"),
-        ("monthly", "Monthly"),
-    ]
     interval = models.IntegerField()
-    frequency = models.CharField(max_length=10, choices=FREQUENCY_CHOICES)
-    # start_datetime - use the base event's start datetime
+    frequency = models.CharField(max_length=10, choices=FrequencyChoices.choices)
+    start_datetime = models.DateTimeField(null=True, blank=True)
     end_datetime = models.DateTimeField(null=True, blank=True)
     repeats = models.IntegerField(null=True, blank=True)
 
@@ -41,27 +37,20 @@ class RecurringEventSchedule(models.Model):
             )
 
     def schedule_events(self):
-        # when created - create events according to the schedule with schedule foreign key set to self
+        """Create events according to the schedule with schedule foreign key set to self"""
         events_to_schedule = []
         Event.objects.bulk_create(events_to_schedule)
 
-    def delete_all_events(self):
-        # cancel all events scheduled by the scheduler
+    def calculate_dates_to_schedule(self):
         pass
+
+    def cancel_all_events(self):
+        events = Event.objects.filter(schedule=self)
+        for event in events:
+            event.status = EventStatus.CANCELLED
 
 
 class Event(models.Model):
-
-    # TextChoices enums
-    class EventType(models.TextChoices):
-        PRIVATE = ("private", "Private Event")
-        GROUP = ("group", "Group Event")
-
-    class EventStatus(models.TextChoices):
-        PLANNED = ("planned", "Planned")
-        IN_PROGRESS = ("in progress", "In progress")
-        ENDED = ("ended", "Ended")
-        CANCELLED = ("cancelled", "Cancelled")
 
     # Basic info
     event_type = models.CharField(choices=EventType.choices, max_length=15)
@@ -102,9 +91,7 @@ class Event(models.Model):
     )
 
     def save(self, *args, **kwargs):
-        # if creating the event (!!!!or if start/end date was changed),
-        # create a task to change event status at that time
-        # if event type is group event, send invitations to all group members
+        # when saving the model, set a task for start and end date
         super().save(*args, **kwargs)
 
     def clean(self):
