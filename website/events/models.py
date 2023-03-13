@@ -21,41 +21,12 @@ class Location(models.Model):
     )
 
 
-class RecurringEventSchedule(models.Model):
-    """Creates recurring events according to schedule and keeps track of all related events."""
-
-    interval = models.IntegerField()
-    frequency = models.CharField(max_length=10, choices=FrequencyChoices.choices)
-    start_datetime = models.DateTimeField(null=True, blank=True)
-    end_datetime = models.DateTimeField(null=True, blank=True)
-    repeats = models.IntegerField(null=True, blank=True)
-
-    def clean(self):
-        if not self.end_datetime and not self.repeats:
-            raise ValidationError(
-                "Either end date or number of repeats must be provided."
-            )
-
-    def schedule_events(self):
-        """Create events according to the schedule with schedule foreign key set to self"""
-        events_to_schedule = []
-        Event.objects.bulk_create(events_to_schedule)
-
-    def calculate_dates_to_schedule(self):
-        pass
-
-    def cancel_all_events(self):
-        events = Event.objects.filter(schedule=self)
-        for event in events:
-            event.status = EventStatus.CANCELLED
-
-
 class Event(models.Model):
 
     # Basic info
     event_type = models.CharField(choices=EventType.choices, max_length=15)
     name = models.CharField(max_length=128)
-    description = models.TextField()
+    description = models.CharField(max_length=5000)
     time_created = models.DateTimeField(auto_now_add=True)
     status = models.CharField(
         choices=EventStatus.choices, max_length=11, default=EventStatus.PLANNED
@@ -79,15 +50,8 @@ class Event(models.Model):
         through="EventInvitation",
         through_fields=("event", "receiver"),
     )
-
-    # Recurring events
     recurrence_schedule = models.ForeignKey(
-        RecurringEventSchedule,
-        on_delete=models.SET_NULL,
-        default=None,
-        null=True,
-        blank=True,
-        related_name="scheduled_events",
+        "RecurringEventSchedule", null=True, blank=True, related_name="events"
     )
 
     def save(self, *args, **kwargs):
@@ -100,6 +64,41 @@ class Event(models.Model):
 
         if self.event_type == "group" and self.group is None:
             raise ValidationError("Group events must have group defined.")
+
+
+class RecurringEventSchedule(models.Model):
+    """Create recurring events according to schedule and keep track of all related events."""
+
+    interval = models.IntegerField()
+    frequency = models.CharField(max_length=10, choices=FrequencyChoices.choices)
+    start_datetime = models.DateTimeField(null=True, blank=True)
+    end_datetime = models.DateTimeField(null=True, blank=True)
+    repeats = models.IntegerField(null=True, blank=True)
+    base_event = models.OneToOneField(Event, null=False, related_name="based_schedule")
+
+    def clean(self):
+        if not self.end_datetime and not self.repeats:
+            raise ValidationError(
+                "Either end date or number of repeats must be provided."
+            )
+
+    def schedule_events(self):
+        """Create events according to the schedule with schedule foreign key set to self"""
+        events_to_schedule = []
+        # get base event
+        for calculated_datetime in self.calculate_dates_to_schedule():
+            # create event with base event attributes and different start and end dates
+            pass
+        Event.objects.bulk_create(events_to_schedule)
+
+    def calculate_dates_to_schedule(self):
+        """Return start dates of all events to schedule"""
+        pass
+
+    def cancel_all_events(self):
+        events = self.events.all()
+        for event in events:
+            event.status = EventStatus.CANCELLED
 
 
 class EventInvitation(AbstractInvitation):

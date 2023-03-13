@@ -8,3 +8,4 @@ drf-spectacular==0.25.1
 celery[redis]==5.2.7
 psycopg2-binary==2.9.5
 Pillow==9.3.0
+python-dateutil==2.8.2

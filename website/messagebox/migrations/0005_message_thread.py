@@ -7,14 +7,18 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('messagebox', '0004_messagethread_user1_messagethread_user2_and_more'),
+        ("messagebox", "0004_messagethread_user1_messagethread_user2_and_more"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='message',
-            name='thread',
-            field=models.ForeignKey(default=1, on_delete=django.db.models.deletion.CASCADE, to='messagebox.messagethread'),
+            model_name="message",
+            name="thread",
+            field=models.ForeignKey(
+                default=1,
+                on_delete=django.db.models.deletion.CASCADE,
+                to="messagebox.messagethread",
+            ),
             preserve_default=False,
         ),
     ]

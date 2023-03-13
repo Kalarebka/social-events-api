@@ -6,25 +6,33 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('messagebox', '0002_initial'),
+        ("messagebox", "0002_initial"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='MessageThread',
+            name="MessageThread",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
             ],
         ),
         migrations.AddField(
-            model_name='message',
-            name='date_read',
+            model_name="message",
+            name="date_read",
             field=models.DateTimeField(blank=True, default=None, null=True),
         ),
         migrations.AlterField(
-            model_name='message',
-            name='content',
-            field=models.CharField(default='', max_length=10000),
+            model_name="message",
+            name="content",
+            field=models.CharField(default="", max_length=10000),
         ),
     ]

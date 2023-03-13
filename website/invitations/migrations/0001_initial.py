@@ -7,20 +7,27 @@ class Migration(migrations.Migration):
 
     initial = True
 
-    dependencies = [
-    ]
+    dependencies = []
 
     operations = [
         migrations.CreateModel(
-            name='InvitationEmail',
+            name="InvitationEmail",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('sender', models.EmailField(max_length=254)),
-                ('receiver', models.EmailField(max_length=254)),
-                ('confirm_url', models.URLField()),
-                ('decline_url', models.URLField()),
-                ('subject', models.CharField(max_length=200)),
-                ('message', models.TextField()),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("sender", models.EmailField(max_length=254)),
+                ("receiver", models.EmailField(max_length=254)),
+                ("confirm_url", models.URLField()),
+                ("decline_url", models.URLField()),
+                ("subject", models.CharField(max_length=200)),
+                ("message", models.TextField()),
             ],
         ),
     ]

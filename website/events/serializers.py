@@ -21,7 +21,6 @@ class EventRetrieveSerializer(serializers.ModelSerializer):
             "end_time",
             "location_id",
             "status",
-            "recurrence_schedule_id",
         ]
 
     def get_organiser_ids(self, obj):

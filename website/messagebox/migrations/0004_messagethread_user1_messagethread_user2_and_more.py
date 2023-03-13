@@ -9,22 +9,32 @@ class Migration(migrations.Migration):
 
     dependencies = [
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
-        ('messagebox', '0003_messagethread_message_date_read_and_more'),
+        ("messagebox", "0003_messagethread_message_date_read_and_more"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='messagethread',
-            name='user1',
-            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='thread_user1', to=settings.AUTH_USER_MODEL),
+            model_name="messagethread",
+            name="user1",
+            field=models.ForeignKey(
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                related_name="thread_user1",
+                to=settings.AUTH_USER_MODEL,
+            ),
         ),
         migrations.AddField(
-            model_name='messagethread',
-            name='user2',
-            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='thread_user2', to=settings.AUTH_USER_MODEL),
+            model_name="messagethread",
+            name="user2",
+            field=models.ForeignKey(
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                related_name="thread_user2",
+                to=settings.AUTH_USER_MODEL,
+            ),
         ),
         migrations.AlterUniqueTogether(
-            name='messagethread',
-            unique_together={('user1', 'user2')},
+            name="messagethread",
+            unique_together={("user1", "user2")},
         ),
     ]

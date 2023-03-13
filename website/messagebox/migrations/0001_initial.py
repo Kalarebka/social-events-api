@@ -7,23 +7,30 @@ class Migration(migrations.Migration):
 
     initial = True
 
-    dependencies = [
-    ]
+    dependencies = []
 
     operations = [
         migrations.CreateModel(
-            name='Message',
+            name="Message",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('title', models.CharField(default='No title', max_length=258)),
-                ('content', models.TextField(default='')),
-                ('date_sent', models.DateTimeField(auto_now_add=True)),
-                ('read_status', models.BooleanField(default=False)),
-                ('deleted_by_sender', models.BooleanField(default=False)),
-                ('deleted_by_receiver', models.BooleanField(default=False)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("title", models.CharField(default="No title", max_length=258)),
+                ("content", models.TextField(default="")),
+                ("date_sent", models.DateTimeField(auto_now_add=True)),
+                ("read_status", models.BooleanField(default=False)),
+                ("deleted_by_sender", models.BooleanField(default=False)),
+                ("deleted_by_receiver", models.BooleanField(default=False)),
             ],
             options={
-                'ordering': ['-date_sent'],
+                "ordering": ["-date_sent"],
             },
         ),
     ]

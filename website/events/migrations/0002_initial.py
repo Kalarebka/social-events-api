@@ -10,55 +10,94 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ('events', '0001_initial'),
+        ("events", "0001_initial"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
-        ('users', '0001_initial'),
+        ("users", "0001_initial"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='location',
-            name='saved_by',
-            field=models.ManyToManyField(related_name='saved_locations', to=settings.AUTH_USER_MODEL),
+            model_name="location",
+            name="saved_by",
+            field=models.ManyToManyField(
+                related_name="saved_locations", to=settings.AUTH_USER_MODEL
+            ),
         ),
         migrations.AddField(
-            model_name='eventinvitation',
-            name='event',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='invited_users', to='events.event'),
+            model_name="eventinvitation",
+            name="event",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="invited_users",
+                to="events.event",
+            ),
         ),
         migrations.AddField(
-            model_name='eventinvitation',
-            name='receiver',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='%(app_label)s_%(class)s_received', to=settings.AUTH_USER_MODEL),
+            model_name="eventinvitation",
+            name="receiver",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="%(app_label)s_%(class)s_received",
+                to=settings.AUTH_USER_MODEL,
+            ),
         ),
         migrations.AddField(
-            model_name='eventinvitation',
-            name='sender',
-            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, related_name='%(app_label)s_%(class)s_sent', to=settings.AUTH_USER_MODEL),
+            model_name="eventinvitation",
+            name="sender",
+            field=models.ForeignKey(
+                null=True,
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="%(app_label)s_%(class)s_sent",
+                to=settings.AUTH_USER_MODEL,
+            ),
         ),
         migrations.AddField(
-            model_name='event',
-            name='group',
-            field=models.ForeignKey(blank=True, default=None, null=True, on_delete=django.db.models.deletion.SET_NULL, to='users.usergroup'),
+            model_name="event",
+            name="group",
+            field=models.ForeignKey(
+                blank=True,
+                default=None,
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                to="users.usergroup",
+            ),
         ),
         migrations.AddField(
-            model_name='event',
-            name='location',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='events.location'),
+            model_name="event",
+            name="location",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                to="events.location",
+            ),
         ),
         migrations.AddField(
-            model_name='event',
-            name='organisers',
-            field=models.ManyToManyField(related_name='events_as_organiser', to=settings.AUTH_USER_MODEL),
+            model_name="event",
+            name="organisers",
+            field=models.ManyToManyField(
+                related_name="events_as_organiser", to=settings.AUTH_USER_MODEL
+            ),
         ),
         migrations.AddField(
-            model_name='event',
-            name='participants',
-            field=models.ManyToManyField(related_name='events_as_participant', through='events.EventInvitation', to=settings.AUTH_USER_MODEL),
+            model_name="event",
+            name="participants",
+            field=models.ManyToManyField(
+                related_name="events_as_participant",
+                through="events.EventInvitation",
+                to=settings.AUTH_USER_MODEL,
+            ),
         ),
         migrations.AddField(
-            model_name='event',
-            name='recurrence_schedule',
-            field=models.ForeignKey(blank=True, default=None, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='scheduled_events', to='events.recurringeventschedule'),
+            model_name="event",
+            name="recurrence_schedule",
+            field=models.ForeignKey(
+                blank=True,
+                default=None,
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                related_name="scheduled_events",
+                to="events.recurringeventschedule",
+            ),
         ),
     ]
