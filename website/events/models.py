@@ -51,7 +51,11 @@ class Event(models.Model):
         through_fields=("event", "receiver"),
     )
     recurrence_schedule = models.ForeignKey(
-        "RecurringEventSchedule", null=True, blank=True, related_name="events"
+        "RecurringEventSchedule",
+        null=True,
+        blank=True,
+        related_name="events",
+        on_delete=models.SET_NULL,
     )
 
     def save(self, *args, **kwargs):
@@ -74,7 +78,9 @@ class RecurringEventSchedule(models.Model):
     start_datetime = models.DateTimeField(null=True, blank=True)
     end_datetime = models.DateTimeField(null=True, blank=True)
     repeats = models.IntegerField(null=True, blank=True)
-    base_event = models.OneToOneField(Event, null=False, related_name="based_schedule")
+    base_event = models.OneToOneField(
+        Event, null=False, related_name="based_schedule", on_delete=models.CASCADE
+    )
 
     def clean(self):
         if not self.end_datetime and not self.repeats:

@@ -19,8 +19,9 @@ class EventRetrieveSerializer(serializers.ModelSerializer):
             "participant_ids",
             "start_time",
             "end_time",
-            "location_id",
+            "location",
             "status",
+            "recurrence_schedule",
         ]
 
     def get_organiser_ids(self, obj):
@@ -46,7 +47,6 @@ class EventCreateUpdateSerializer(serializers.ModelSerializer):
             "start_time",
             "end_time",
             "location_id",
-            "recurrence_schedule_id",
         ]
 
 
