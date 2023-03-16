@@ -1,4 +1,3 @@
-from abc import ABC, abstractmethod
 from typing import List
 
 from celery import shared_task
@@ -6,31 +5,7 @@ from django.conf import settings
 from django.core.mail import EmailMessage, get_connection
 from django.template.loader import render_to_string
 
-from .models import AbstractInvitation
-
-
-class AbstractEmailInvitation(ABC):
-    # separate class and create implementation for all invitation models?
-    # or place the abstract methods in abstract invitation and implement in concrete invitation
-    # or keep this abstract separate, but inherit from both AbstractInvitation and AbstractEmailInvitation
-    # in the concrete invitation model
-    # could move email_response_token here? + methods to get accept and decline urls
-
-    @abstractmethod
-    def get_email_template(self):
-        pass
-
-    @abstractmethod
-    def get_email_data(self):
-        pass
-
-    @abstractmethod
-    def get_subject(self):
-        pass
-
-    @abstractmethod
-    def get_recipient_list(self):
-        pass
+from .models import AbstractEmailInvitation
 
 
 def create_invitation_email(invitation: AbstractEmailInvitation) -> EmailMessage:

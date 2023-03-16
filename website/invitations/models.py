@@ -1,3 +1,4 @@
+from abc import ABC, abstractmethod
 from uuid import uuid4
 
 from django.conf import settings
@@ -19,14 +20,6 @@ class AbstractInvitation(models.Model):
     confirmed = models.BooleanField(default=False)
     response_received = models.BooleanField(default=False)
     date_sent = models.DateTimeField(auto_now_add=True)
-    # Email response token - 128 bit UUID saved as 32 character hexadecimal str
-    email_response_token = models.CharField(max_length=32, unique=True)
-
-    def save(self, *args, **kwargs):
-        # When the invitation is first created, create email_response_token
-        if self._state.adding:
-            self.token = uuid4().hex
-        super().save(*args, **kwargs)
 
     def send_response(self, response):
         if response == "accept":
@@ -40,3 +33,30 @@ class AbstractInvitation(models.Model):
 
     class Meta:
         abstract = True
+
+
+class AbstractEmailInvitation(ABC):
+    # Email response token - 128 bit UUID saved as 32 character hexadecimal str
+    email_response_token = models.CharField(max_length=32, unique=True)
+
+    def save(self, *args, **kwargs):
+        # When the invitation is first created, create email_response_token
+        if self._state.adding:
+            self.token = uuid4().hex
+        super().save(*args, **kwargs)
+
+    @abstractmethod
+    def get_email_template(self):
+        pass
+
+    @abstractmethod
+    def get_email_data(self):
+        pass
+
+    @abstractmethod
+    def get_subject(self):
+        pass
+
+    @abstractmethod
+    def get_recipient_list(self):
+        pass

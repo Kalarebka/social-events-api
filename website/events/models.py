@@ -1,10 +1,12 @@
+from dateutil.rrule import rrule
+
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import models
 
 from invitations.models import AbstractInvitation
 from users.models import UserGroup
-from .constants import EventType, EventStatus, FrequencyChoices
+from .constants import EventType, EventStatus, FrequencyChoices, FREQUENCY_MAP
 
 
 class Location(models.Model):
@@ -58,10 +60,6 @@ class Event(models.Model):
         on_delete=models.SET_NULL,
     )
 
-    def save(self, *args, **kwargs):
-        # when saving the model, set a task for start and end date
-        super().save(*args, **kwargs)
-
     def clean(self):
         if self.start_time >= self.end_time:
             raise ValidationError("Event end date must be later than start date")
@@ -75,7 +73,6 @@ class RecurringEventSchedule(models.Model):
 
     interval = models.IntegerField()
     frequency = models.CharField(max_length=10, choices=FrequencyChoices.choices)
-    start_datetime = models.DateTimeField(null=True, blank=True)
     end_datetime = models.DateTimeField(null=True, blank=True)
     repeats = models.IntegerField(null=True, blank=True)
     base_event = models.OneToOneField(
@@ -90,16 +87,34 @@ class RecurringEventSchedule(models.Model):
 
     def schedule_events(self):
         """Create events according to the schedule with schedule foreign key set to self"""
-        events_to_schedule = []
-        # get base event
-        for calculated_datetime in self.calculate_dates_to_schedule():
-            # create event with base event attributes and different start and end dates
-            pass
-        Event.objects.bulk_create(events_to_schedule)
+        # need to work out how to do invitations/responses to recurring events first
+        pass
 
     def calculate_dates_to_schedule(self):
-        """Return start dates of all events to schedule"""
-        pass
+        start_date = self.base_event.start_date
+        frequency = FREQUENCY_MAP[self.frequency]
+        if self.end_datetime:
+            end_date = self.end_datetime
+            dates = list(
+                rrule(
+                    dtstart=start_date,
+                    until=end_date,
+                    freq=frequency,
+                    interval=self.interval,
+                )
+            )
+        elif self.repeats:
+            dates = list(
+                rrule(
+                    dtstart=start_date,
+                    count=self.repeats,
+                    freq=frequency,
+                    interval=self.interval,
+                )
+            )
+        else:
+            raise ValueError("Either end date or number of repeats must be provided.")
+        return dates
 
     def cancel_all_events(self):
         events = self.events.all()

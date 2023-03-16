@@ -1,3 +1,4 @@
+from dateutil.rrule import DAILY, WEEKLY, MONTHLY, YEARLY
 from django.db import models
 
 
@@ -17,3 +18,13 @@ class FrequencyChoices(models.TextChoices):
     DAILY = ("daily", "Daily")
     WEEKLY = ("weekly", "Weekly")
     MONTHLY = ("monthly", "Monthly")
+    YEARLY = ("yearly", "Yearly")
+
+
+# Mapping of frequencychoices to dateutil constants
+FREQUENCY_MAP = {
+    FrequencyChoices.DAILY: DAILY,
+    FrequencyChoices.WEEKLY: WEEKLY,
+    FrequencyChoices.MONTHLY: MONTHLY,
+    FrequencyChoices.YEARLY: YEARLY,
+}
