@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from typing import List
 from uuid import uuid4
 
 from django.conf import settings
@@ -46,17 +47,26 @@ class AbstractEmailInvitation(ABC):
         super().save(*args, **kwargs)
 
     @abstractmethod
-    def get_email_template(self):
+    def get_email_template(self) -> str:
+        # Return template name
         pass
 
     @abstractmethod
-    def get_email_data(self):
+    def get_email_data(self) -> dict:
+        # Return a dictionary of values to substitute in the template
         pass
 
     @abstractmethod
-    def get_subject(self):
+    def get_subject(self) -> str:
+        # Return email subject string
         pass
 
     @abstractmethod
-    def get_recipient_list(self):
+    def get_recipient_list(self) -> List[str]:
+        # Return a list containing email adress of invitation recipient
+        pass
+
+    @abstractmethod
+    def get_response_url(self, invitation_response) -> str:
+        # Return url to email confirmation endpoint, passing token and response as query parameters
         pass

@@ -4,7 +4,7 @@ from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import models
 
-from invitations.models import AbstractInvitation
+from invitations.models import AbstractInvitation, AbstractEmailInvitation
 from users.models import UserGroup
 from .constants import EventType, EventStatus, FrequencyChoices, FREQUENCY_MAP
 
@@ -87,7 +87,7 @@ class RecurringEventSchedule(models.Model):
 
     def schedule_events(self):
         """Create events according to the schedule with schedule foreign key set to self"""
-        # need to work out how to do invitations/responses to recurring events first
+        # need to figure out how to do invitations/responses to recurring events first
         pass
 
     def calculate_dates_to_schedule(self):
@@ -122,7 +122,7 @@ class RecurringEventSchedule(models.Model):
             event.status = EventStatus.CANCELLED
 
 
-class EventInvitation(AbstractInvitation):
+class EventInvitation(AbstractEmailInvitation, AbstractInvitation):
 
     event = models.ForeignKey(
         Event,
@@ -132,4 +132,29 @@ class EventInvitation(AbstractInvitation):
     )
 
     def confirm(self):
-        self.confirmed = True
+        if self.event.recurrence_schedule:
+            # TODO add user as confirmed to all events in the schedule
+            pass
+
+    def get_email_template(self) -> str:
+        return "invitation_emails/event_invitation.html"
+
+    def get_email_data(self):
+        data = {}
+        data["receiver_name"] = self.receiver.username
+        data["event_name"] = self.event.name
+        data["confirm_url"] = self.get_response_url("accept")
+        data["decline_url"] = self.get_response_url("decline")
+        return data
+
+    def get_subject(self):
+        return f"You have been invited to {self.event.name}"
+
+    def get_recipient_list(self):
+        return [
+            self.receiver.email,
+        ]
+
+    def get_response_url(self):
+        # TODO
+        pass

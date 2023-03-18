@@ -16,6 +16,7 @@ from pathlib import Path
 BASE_DIR = Path(__file__).resolve().parent.parent
 STATIC_DIR = os.path.join(BASE_DIR, "static")
 MEDIA_DIR = os.path.join(BASE_DIR, "media")
+TEMPLATE_DIR = os.path.join(BASE_DIR, "templates")
 
 
 # Quick-start development settings - unsuitable for production
@@ -74,7 +75,7 @@ ROOT_URLCONF = "website.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [],
+        "DIRS": [TEMPLATE_DIR],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [

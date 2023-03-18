@@ -49,6 +49,7 @@ class AbstractInvitationDetailView(ABC, APIView):
 
 
 class AbstractInvitationResponseView(ABC, APIView):
+    # TODO break into 2 views, email response separate
     """
     Receive responses to invitations
     """
@@ -59,7 +60,7 @@ class AbstractInvitationResponseView(ABC, APIView):
         pass
 
     def get(self, request, pk):
-        """Respond by following a link in the invitation email"""
+        """Respond by following a url in the invitation email"""
         invitation = get_object_or_404(self.get_invitation_model(), pk=pk)
         token = request.query_params.get("token", None)
         invitation_response = request.query_params.get("response", None)

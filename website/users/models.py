@@ -2,7 +2,7 @@ from django.conf import settings
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 
-from invitations.models import AbstractInvitation
+from invitations.models import AbstractInvitation, AbstractEmailInvitation
 
 
 class CustomUser(AbstractUser):
@@ -41,16 +41,62 @@ class UserGroup(models.Model):
         return self.name
 
 
-class FriendInvitation(AbstractInvitation):
+class FriendInvitation(AbstractEmailInvitation, AbstractInvitation):
     def confirm(self):
         self.sender.friends.add(self.receiver)
         self.receiver.friends.add(self.sender)
 
+    def get_email_template(self) -> str:
+        return "invitation_emails/friend_invitation.html"
 
-class GroupInvitation(AbstractInvitation):
+    def get_email_data(self):
+        data = {}
+        data["receiver_name"] = self.receiver.username
+        data["sender_name"] = self.sender.username
+        data["confirm_url"] = self.get_response_url("accept")
+        data["decline_url"] = self.get_response_url("decline")
+        return data
+
+    def get_subject(self):
+        return f"You have been invited to {self.sender.username}'s friends"
+
+    def get_recipient_list(self):
+        return [
+            self.receiver.email,
+        ]
+
+    def get_response_url(self):
+        # TODO
+        pass
+
+
+class GroupInvitation(AbstractEmailInvitation, AbstractInvitation):
     group = models.ForeignKey(
         UserGroup, on_delete=models.CASCADE, related_name="invitations"
     )
 
     def confirm(self):
         self.group.members.add(self.receiver)
+
+    def get_email_template(self) -> str:
+        return "invitation_emails/group_invitation.html"
+
+    def get_email_data(self):
+        data = {}
+        data["receiver_name"] = self.receiver.username
+        data["group_name"] = self.group.name
+        data["confirm_url"] = self.get_response_url("accept")
+        data["decline_url"] = self.get_response_url("decline")
+        return data
+
+    def get_subject(self):
+        return f"You have been invited to {self.group.name} group"
+
+    def get_recipient_list(self):
+        return [
+            self.receiver.email,
+        ]
+
+    def get_response_url(self):
+        # TODO
+        pass
