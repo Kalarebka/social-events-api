@@ -2,7 +2,7 @@ from django.conf import settings
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 
-from invitations.models import AbstractInvitation, AbstractEmailInvitation
+from invitations.base_models import AbstractEmailInvitation
 
 
 class CustomUser(AbstractUser):
@@ -41,7 +41,7 @@ class UserGroup(models.Model):
         return self.name
 
 
-class FriendInvitation(AbstractEmailInvitation, AbstractInvitation):
+class FriendInvitation(AbstractEmailInvitation):
     def confirm(self):
         self.sender.friends.add(self.receiver)
         self.receiver.friends.add(self.sender)
@@ -70,7 +70,7 @@ class FriendInvitation(AbstractEmailInvitation, AbstractInvitation):
         pass
 
 
-class GroupInvitation(AbstractEmailInvitation, AbstractInvitation):
+class GroupInvitation(AbstractEmailInvitation):
     group = models.ForeignKey(
         UserGroup, on_delete=models.CASCADE, related_name="invitations"
     )

@@ -11,6 +11,7 @@ from rest_framework.generics import (
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from invitations.tasks import send_invitation_email
 from invitations.views import (
     AbstractInvitationDetailView,
     AbstractInvitationResponseView,
@@ -152,6 +153,7 @@ class GroupMembersDetailView(APIView):
         """Send group invitation to user. Path parameters: group_pk, user_pk"""
         group = get_object_or_404(UserGroup, pk=group_pk)
         receiver = get_object_or_404(get_user_model(), pk=user_pk)
+        self.check_object_permissions(request, group)
         if receiver in group.members.all():
             return Response(
                 {"message": "user already a member of the group"},
@@ -161,6 +163,10 @@ class GroupMembersDetailView(APIView):
             sender=request.user, receiver=receiver, group=group
         )
         invitation.save()
+
+        # Set celery task to send invitation email
+        send_invitation_email.delay(invitation)
+
         return Response(
             {"message": "invitation sent"},
             status=status.HTTP_201_CREATED,
@@ -170,6 +176,7 @@ class GroupMembersDetailView(APIView):
         """Remove user from group"""
         group = get_object_or_404(UserGroup, pk=group_pk)
         user = get_object_or_404(get_user_model(), pk=user_pk)
+        self.check_object_permissions(request, group)
         if user not in group.members.all():
             return Response(
                 {"message": "user is not a member of the group"},
@@ -192,6 +199,7 @@ class GroupAdminsDetailView(APIView):
         """Make another user an admin of the group"""
         group = get_object_or_404(UserGroup, pk=group_pk)
         user = get_object_or_404(get_user_model(), pk=user_pk)
+        self.check_object_permissions(request, group)
 
         if user not in group.members.all():
             return Response(
@@ -209,6 +217,7 @@ class GroupAdminsDetailView(APIView):
         """Take away user's admin status"""
         group = get_object_or_404(UserGroup, pk=group_pk)
         user = get_object_or_404(get_user_model(), pk=user_pk)
+        self.check_object_permissions(request, group)
 
         if user not in group.administrators.all():
             return Response(
@@ -232,7 +241,7 @@ class GroupAdminsDetailView(APIView):
         )
 
 
-class InvitationsListView(ListAPIView):
+class InvitationsListView(ListAPIView):  # TODO change to inherit from abstract
     """
     GET - list of invitations
     query parameters:

@@ -7,6 +7,7 @@ from rest_framework.generics import (
     CreateAPIView,
     ListCreateAPIView,
     RetrieveUpdateDestroyAPIView,
+    ListAPIView,
 )
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -17,6 +18,7 @@ from invitations.views import (
     AbstractInvitationResponseView,
 )
 
+from invitations.tasks import send_invitation_email
 from .models import Event, EventInvitation
 from .permissions import EventPermission
 from .serializers import (
@@ -37,7 +39,7 @@ class EventViewSet(ModelViewSet):
     }
 
     def get_queryset(self):
-        # Only events in which the user is a participant
+        # Only events in which the user is a participant (including not confirmed)
         user = self.request.user
         return user.events
 
@@ -51,27 +53,34 @@ class EventParticipantDetailView(APIView):
     permission_classes = [EventPermission]
 
     def post(self, request, event_pk, user_pk):
-        """Send event invitation to user. Path parameters: event_pk, user_pk"""
+        """Send event invitation to user. Path parameters: event_pk, user_pk."""
         event = get_object_or_404(Event, pk=event_pk)
+        self.check_object_permissions(request, event)
         receiver = get_object_or_404(get_user_model(), pk=user_pk)
         if receiver in event.participants.all():
             return Response(
                 {"message": "user already invited to the event"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
+        # Create invitation
         invitation = EventInvitation(
             sender=request.user, receiver=receiver, event=event
         )
         invitation.save()
+
+        # Set celery task to send invitation email
+        send_invitation_email.delay(invitation)
+
         return Response(
             {"message": "invitation sent"},
             status=status.HTTP_201_CREATED,
         )
 
     def delete(self, request, event_pk, user_pk):
-        "Remove user from event participants"
+        "Remove user from event participants. Path parameters: event_pk, user_pk."
         user_to_remove = get_object_or_404(get_user_model(), pk=user_pk)
         event = get_object_or_404(Event, pk=event_pk)
+        self.check_object_permissions(request, event)
         if user_to_remove in event.participants.all():
             return Response(
                 {"message": "user is not a member of the group"},
@@ -89,11 +98,72 @@ class EventParticipantDetailView(APIView):
 
 
 class EventOrganiserDetailView(APIView):
-    pass
+    permission_classes = [EventPermission]
+
+    def post(self, request, event_pk, user_pk):
+        """Make another user an organiser of the event"""
+        event = get_object_or_404(Event, pk=event_pk)
+        user = get_object_or_404(get_user_model(), pk=user_pk)
+        self.check_object_permissions(request, event)
+
+        if user not in event.organisers.all():
+            return Response(
+                {"message": "The user is not an organiser of the event"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        event.organisers.add(user)
+        return Response(
+            {"message": "user added to event organisers"},
+            status=status.HTTP_200_OK,
+        )
+
+    def delete(self, request, event_pk, user_pk):
+        """Take away user's organiser status"""
+        event = get_object_or_404(Event, pk=event_pk)
+        user = get_object_or_404(get_user_model(), pk=user_pk)
+        self.check_object_permissions(request, event)
+
+        if user not in event.organisers.all():
+            return Response(
+                {"message": "user is not an organiser of the event"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # The only remaining organiser cannot be removed
+        if event.organisers.all().count() == 1:
+            return Response(
+                {
+                    "message": "Last remaining organiser of the event cannot be removed.\
+                                Nominate another organiser first or cancel the event.",
+                }
+            )
+        event.organisers.remove(user)
+        event.save()
+        return Response(
+            {"message": "user removed from event organisers"},
+            status=status.HTTP_200_OK,
+        )
 
 
-class EventInvitationsListView(APIView):
-    pass
+class EventInvitationsListView(ListAPIView):
+    """
+    GET - list of event invitations
+    query parameter:
+    - category: sent/received (default: received)
+    Sent - invitations sent by the user
+    Received - current user's received invitations without response
+    """
+
+    serializer_class = EventInvitationSerializer
+
+    def get_queryset(self):
+        user = self.request.user
+
+        category = self.request.query_params.get("category")
+        if category == "sent":
+            return EventInvitation.filter(sender=user)
+        return EventInvitation.filter(receiver=user, response_received=False)
 
 
 class EventInvitationDetailView(AbstractInvitationDetailView):
@@ -122,16 +192,18 @@ class LocationsListView(ListCreateAPIView):
 
 class LocationDetailView(RetrieveUpdateDestroyAPIView):
     """
-    User's saved locations view
+    User's saved location detail view
     """
 
-    # permission that checks if location.saved_by == request.user
+    # TODO permission that checks if location.saved_by == request.user
     permission_classes = []
     serializer_class = LocationSerializer
 
 
 class RecurrenceScheduleListView(CreateAPIView):
     """Create schedules for recurring events"""
+
+    # TODO Change to creating schedule from existing event
 
     serializer_class = RecurringEventScheduleSerializer
 

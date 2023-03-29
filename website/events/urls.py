@@ -24,9 +24,7 @@ urlpatterns = [
     ),
     path("<int:event_pk>/organisers/<int:user_pk>", EventOrganiserDetailView.as_view()),
     path("invitations/", EventInvitationsListView.as_view()),
-    path(
-        "invitations/<int:pk>", EventInvitationDetailView.as_view()
-    ),  # POST response="accept"/"decline"
+    path("invitations/<int:pk>", EventInvitationDetailView.as_view()),
     path("locations/", LocationsListView.as_view()),
     path("locations/<int:pk>", LocationDetailView.as_view()),
     path("schedules/", RecurrenceScheduleListView.as_view()),

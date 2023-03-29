@@ -4,7 +4,7 @@ from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import models
 
-from invitations.models import AbstractInvitation, AbstractEmailInvitation
+from invitations.base_models import AbstractEmailInvitation
 from users.models import UserGroup
 from .constants import EventType, EventStatus, FrequencyChoices, FREQUENCY_MAP
 
@@ -122,7 +122,7 @@ class RecurringEventSchedule(models.Model):
             event.status = EventStatus.CANCELLED
 
 
-class EventInvitation(AbstractEmailInvitation, AbstractInvitation):
+class EventInvitation(AbstractEmailInvitation):
 
     event = models.ForeignKey(
         Event,
