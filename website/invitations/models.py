@@ -1,6 +1,6 @@
 from django.urls import reverse
 
-from .base_models import AbstractInvitation, AbstractEmailInvitation
+from .base_models import AbstractEmailInvitation, AbstractInvitation
 
 
 class BasicInvitation(AbstractInvitation):

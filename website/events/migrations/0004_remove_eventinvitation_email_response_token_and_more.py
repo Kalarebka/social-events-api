@@ -7,33 +7,44 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('events', '0003_alter_event_organisers_alter_event_participants'),
+        ("events", "0003_alter_event_organisers_alter_event_participants"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='eventinvitation',
-            name='email_response_token',
+            model_name="eventinvitation",
+            name="email_response_token",
         ),
         migrations.AddField(
-            model_name='recurringeventschedule',
-            name='base_event',
-            field=models.OneToOneField(default=1, on_delete=django.db.models.deletion.CASCADE, related_name='based_schedule', to='events.event'),
+            model_name="recurringeventschedule",
+            name="base_event",
+            field=models.OneToOneField(
+                default=1,
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="based_schedule",
+                to="events.event",
+            ),
             preserve_default=False,
         ),
         migrations.AddField(
-            model_name='recurringeventschedule',
-            name='start_datetime',
+            model_name="recurringeventschedule",
+            name="start_datetime",
             field=models.DateTimeField(blank=True, null=True),
         ),
         migrations.AlterField(
-            model_name='event',
-            name='description',
+            model_name="event",
+            name="description",
             field=models.CharField(max_length=5000),
         ),
         migrations.AlterField(
-            model_name='event',
-            name='recurrence_schedule',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='events', to='events.recurringeventschedule'),
+            model_name="event",
+            name="recurrence_schedule",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                related_name="events",
+                to="events.recurringeventschedule",
+            ),
         ),
     ]

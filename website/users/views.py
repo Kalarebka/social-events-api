@@ -1,5 +1,10 @@
 from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
+from invitations.tasks import send_invitation_email
+from invitations.views import (
+    AbstractInvitationDetailView,
+    AbstractInvitationResponseView,
+)
 from rest_framework import status
 from rest_framework.exceptions import ValidationError
 from rest_framework.generics import (
@@ -11,16 +16,8 @@ from rest_framework.generics import (
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from invitations.tasks import send_invitation_email
-from invitations.views import (
-    AbstractInvitationDetailView,
-    AbstractInvitationResponseView,
-)
 from .models import FriendInvitation, GroupInvitation, UserGroup
-from .permissions import (
-    OwnProfileOrReadOnly,
-    UserGroupPermission,
-)
+from .permissions import OwnProfileOrReadOnly, UserGroupPermission
 from .serializers import (
     FriendInvitationSerializer,
     GroupInvitationSerializer,

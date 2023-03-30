@@ -2,12 +2,12 @@ from django.urls import path
 
 from .views import (
     FriendDetailView,
+    FriendInvitationDetailView,
     GroupAdminsDetailView,
+    GroupInvitationDetailView,
     GroupMembersDetailView,
     GroupsDetailView,
     GroupsListView,
-    FriendInvitationDetailView,
-    GroupInvitationDetailView,
     InvitationsListView,
     UserListView,
     UserProfileView,

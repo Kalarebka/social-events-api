@@ -1,8 +1,8 @@
 from django.contrib import admin
-
 from django.contrib.auth.admin import UserAdmin
+
 from .forms import CustomUserChangeForm, CustomUserCreationForm
-from .models import CustomUser, UserGroup, FriendInvitation, GroupInvitation
+from .models import CustomUser, FriendInvitation, GroupInvitation, UserGroup
 
 
 class FromUserInline(admin.TabularInline):

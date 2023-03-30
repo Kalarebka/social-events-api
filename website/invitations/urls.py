@@ -1,12 +1,12 @@
 from django.urls import path
 
 from .views import (
-    InvitationListView,
-    InvitationDetailView,
     EmailInvitationDetailView,
-    InvitationResponseView,
-    EmailInvitationResponseView,
     EmailInvitationEmailResponseView,
+    EmailInvitationResponseView,
+    InvitationDetailView,
+    InvitationListView,
+    InvitationResponseView,
 )
 
 app_name = "invitations"

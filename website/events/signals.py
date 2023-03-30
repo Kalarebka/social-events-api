@@ -1,8 +1,8 @@
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
-from .tasks import update_event_status
 from .models import Event
+from .tasks import update_event_status
 
 
 @receiver(post_save, sender=Event)

@@ -1,7 +1,7 @@
 from django.core.exceptions import ValidationError
 from rest_framework import serializers
 
-from .models import Event, Location, RecurringEventSchedule, EventInvitation
+from .models import Event, EventInvitation, Location, RecurringEventSchedule
 
 
 class EventRetrieveSerializer(serializers.ModelSerializer):

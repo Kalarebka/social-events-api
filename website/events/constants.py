@@ -1,4 +1,4 @@
-from dateutil.rrule import DAILY, WEEKLY, MONTHLY, YEARLY
+from dateutil.rrule import DAILY, MONTHLY, WEEKLY, YEARLY
 from django.db import models
 
 

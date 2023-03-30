@@ -1,7 +1,7 @@
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
 
-from .models import BasicInvitation, BasicEmailInvitation
+from .models import BasicEmailInvitation, BasicInvitation
 
 
 class BasicInvitationSerializer(serializers.ModelSerializer):

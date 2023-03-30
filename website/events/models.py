@@ -1,12 +1,11 @@
 from dateutil.rrule import rrule
-
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import models
-
 from invitations.base_models import AbstractEmailInvitation
 from users.models import UserGroup
-from .constants import EventType, EventStatus, FrequencyChoices, FREQUENCY_MAP
+
+from .constants import FREQUENCY_MAP, EventStatus, EventType, FrequencyChoices
 
 
 class Location(models.Model):
