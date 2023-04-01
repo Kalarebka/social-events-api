@@ -1,6 +1,8 @@
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+from django.urls import reverse
+
 from invitations.base_models import AbstractEmailInvitation
 
 
@@ -64,9 +66,12 @@ class FriendInvitation(AbstractEmailInvitation):
             self.receiver.email,
         ]
 
-    def get_response_url(self):
-        # TODO
-        pass
+    def get_response_url(self, invitation_response):
+        url = reverse("users:friend_invite_email_response")
+        response_url = (
+            f"{url}?token={self.email_response_token}&response={invitation_response}"
+        )
+        return response_url
 
 
 class GroupInvitation(AbstractEmailInvitation):
@@ -96,6 +101,9 @@ class GroupInvitation(AbstractEmailInvitation):
             self.receiver.email,
         ]
 
-    def get_response_url(self):
-        # TODO
-        pass
+    def get_response_url(self, invitation_response):
+        url = reverse("users:group_invite_email_response")
+        response_url = (
+            f"{url}?token={self.email_response_token}&response={invitation_response}"
+        )
+        return response_url

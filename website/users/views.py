@@ -1,9 +1,11 @@
 from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
 from invitations.tasks import send_invitation_email
-from invitations.views import (
+from invitations.base_views import (
     AbstractInvitationDetailView,
     AbstractInvitationResponseView,
+    AbstractEmailInvitationResponseView,
+    AbstractInvitationListView,
 )
 from rest_framework import status
 from rest_framework.exceptions import ValidationError
@@ -238,7 +240,7 @@ class GroupAdminsDetailView(APIView):
         )
 
 
-class InvitationsListView(ListAPIView):  # TODO change to inherit from abstract
+class InvitationsListView(AbstractInvitationListView):
     """
     GET - list of invitations
     query parameters:
@@ -248,26 +250,18 @@ class InvitationsListView(ListAPIView):  # TODO change to inherit from abstract
     Received - current user's received invitations without response
     """
 
-    def get_queryset(self):
-        user = self.request.user
+    def get_invitation_model(self):
         invite_type = self.request.query_params.get("invite_type", None)
 
-        queryset_dict = {
-            "friend": FriendInvitation.objects.all(),
-            "group": GroupInvitation.objects.all(),
+        invite_type_dict = {
+            "friend": FriendInvitation,
+            "group": GroupInvitation,
         }
 
         if invite_type not in queryset_dict:
             raise ValidationError(
                 detail="invite_type is required and must be 'friend' or 'group"
             )
-
-        qs = queryset_dict[invite_type]
-
-        category = self.request.query_params.get("category")
-        if category == "sent":
-            return qs.filter(sender=user)
-        return qs.filter(receiver=user, response_received=False)
 
     def get_serializer_class(self):
         # list() method in ListModelMixin calls get_queryset first,
@@ -302,5 +296,15 @@ class FriendInvitationResponseView(AbstractInvitationResponseView):
 
 
 class GroupInvitationResponseView(AbstractInvitationResponseView):
+    def get_invitation_model(self):
+        return GroupInvitation
+
+
+class FriendInvitationEmailResponseView(AbstractEmailInvitationResponseView):
+    def get_invitation_model(self):
+        return FriendInvitation
+
+
+class GroupInvitationEmailResponseView(AbstractEmailInvitationResponseView):
     def get_invitation_model(self):
         return GroupInvitation

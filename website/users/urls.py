@@ -11,6 +11,10 @@ from .views import (
     InvitationsListView,
     UserListView,
     UserProfileView,
+    FriendInvitationResponseView,
+    FriendInvitationEmailResponseView,
+    GroupInvitationResponseView,
+    GroupInvitationEmailResponseView,
 )
 
 app_name = "users"
@@ -32,15 +36,35 @@ urlpatterns = [
         GroupAdminsDetailView.as_view(),
     ),
     # Invitations
-    path("invitations/", InvitationsListView.as_view()),
+    path("invitations/", InvitationsListView.as_view(), name="invite_list"),
     path(
         "invitations/friends/<int:pk>",
         FriendInvitationDetailView.as_view(),
-        name="group_invitation_detail",
+        name="friend_invite_detail",
     ),
     path(
         "invitations/groups/<int:pk>",
         GroupInvitationDetailView.as_view(),
-        name="group_invitation_detail",
+        name="group_invite_detail",
+    ),
+    path(
+        "invitations/friends/<int:pk>/response",
+        FriendInvitationResponseView.as_view(),
+        name="friend_invite_response",
+    ),
+    path(
+        "invitations/friends/<int:pk>/email-response",
+        FriendInvitationEmailResponseView.as_view(),
+        name="friend_invite_email_response",
+    ),
+    path(
+        "invitations/groups/<int:pk>/response",
+        GroupInvitationResponseView.as_view(),
+        name="group_invite_response",
+    ),
+    path(
+        "invitations/groups/<int:pk>/email-response",
+        GroupInvitationEmailResponseView.as_view(),
+        name="group_invite_email_response",
     ),
 ]

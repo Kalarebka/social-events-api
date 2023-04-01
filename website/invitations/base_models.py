@@ -78,4 +78,5 @@ class AbstractEmailInvitation(AbstractInvitation):
 
     def get_response_url(self, invitation_response) -> str:
         # Return a url to an endpoint receiving invitations responses, containing response and token
+        # TODO should be possible to change to child classes only providing base url
         raise NotImplementedError()
