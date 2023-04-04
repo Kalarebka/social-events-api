@@ -9,11 +9,11 @@ User = get_user_model()
 
 class MessageSerializer(serializers.ModelSerializer):
     sender = serializers.PrimaryKeyRelatedField(read_only=True)
-    receiver = serializers.PrimaryKeyRelatedField(
+    recipient = serializers.PrimaryKeyRelatedField(
         read_only=False, queryset=User.objects.all()
     )
     sender_username = serializers.SerializerMethodField()
-    receiver_username = serializers.SerializerMethodField()
+    recipient_username = serializers.SerializerMethodField()
     thread_id = serializers.PrimaryKeyRelatedField(source="thread", read_only=True)
 
     class Meta:
@@ -21,13 +21,13 @@ class MessageSerializer(serializers.ModelSerializer):
         fields = [
             "id",
             "sender",
-            "receiver",
+            "recipient",
             "title",
             "content",
             "date_sent",
             "read_status",
             "sender_username",
-            "receiver_username",
+            "recipient_username",
             "thread_id",
         ]
         read_only_fields = ["id", "sender", "date_sent", "thread_id"]
@@ -35,20 +35,20 @@ class MessageSerializer(serializers.ModelSerializer):
     def get_sender_username(self, obj):
         return obj.sender.username
 
-    def get_receiver_username(self, obj):
-        return obj.receiver.username
+    def get_recipient_username(self, obj):
+        return obj.recipient.username
 
     def create(self, validated_data):
         sender = validated_data["sender"]
-        receiver = validated_data["receiver"]
+        recipient = validated_data["recipient"]
         title = validated_data.get("title", "No title")
         content = validated_data.get("content", "")
-        message_thread = get_message_thread(sender.id, receiver.id)
+        message_thread = get_message_thread(sender.id, recipient.id)
         if not message_thread:
-            message_thread = MessageThread.objects.create(user1=sender, user2=receiver)
+            message_thread = MessageThread.objects.create(user1=sender, user2=recipient)
         message = Message.objects.create(
             sender=sender,
-            receiver=receiver,
+            recipient=recipient,
             title=title,
             content=content,
             thread=message_thread,

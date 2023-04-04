@@ -44,15 +44,15 @@ class UserGroup(models.Model):
 
 class FriendInvitation(AbstractEmailInvitation):
     def confirm(self):
-        self.sender.friends.add(self.receiver)
-        self.receiver.friends.add(self.sender)
+        self.sender.friends.add(self.recipient)
+        self.recipient.friends.add(self.sender)
 
     def get_email_template(self) -> str:
         return "invitation_emails/friend_invitation.html"
 
     def get_email_data(self):
         data = {}
-        data["receiver_name"] = self.receiver.username
+        data["recipient_name"] = self.recipient.username
         data["sender_name"] = self.sender.username
         data["confirm_url"] = self.get_response_url("accept")
         data["decline_url"] = self.get_response_url("decline")
@@ -63,7 +63,7 @@ class FriendInvitation(AbstractEmailInvitation):
 
     def get_recipient_list(self):
         return [
-            self.receiver.email,
+            self.recipient.email,
         ]
 
     def get_response_url(self, invitation_response):
@@ -80,14 +80,14 @@ class GroupInvitation(AbstractEmailInvitation):
     )
 
     def confirm(self):
-        self.group.members.add(self.receiver)
+        self.group.members.add(self.recipient)
 
     def get_email_template(self) -> str:
         return "invitation_emails/group_invitation.html"
 
     def get_email_data(self):
         data = {}
-        data["receiver_name"] = self.receiver.username
+        data["recipient_name"] = self.recipient.username
         data["group_name"] = self.group.name
         data["confirm_url"] = self.get_response_url("accept")
         data["decline_url"] = self.get_response_url("decline")
@@ -98,7 +98,7 @@ class GroupInvitation(AbstractEmailInvitation):
 
     def get_recipient_list(self):
         return [
-            self.receiver.email,
+            self.recipient.email,
         ]
 
     def get_response_url(self, invitation_response):

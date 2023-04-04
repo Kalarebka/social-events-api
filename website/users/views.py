@@ -70,13 +70,13 @@ class UserProfileView(RetrieveUpdateAPIView):
 class FriendDetailView(APIView):
     def post(self, request, friend_pk):
         """Send a friend invitation to user with friend_pk"""
-        receiver = get_object_or_404(get_user_model(), pk=friend_pk)
-        if receiver in request.user.friends.all():
+        recipient = get_object_or_404(get_user_model(), pk=friend_pk)
+        if recipient in request.user.friends.all():
             return Response(
                 {"message": "user already on friends list"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
-        invitation = FriendInvitation(sender=request.user, receiver=receiver)
+        invitation = FriendInvitation(sender=request.user, recipient=recipient)
         invitation.save()
         return Response(
             {"message": "invitation sent"},
@@ -151,15 +151,15 @@ class GroupMembersDetailView(APIView):
     def post(self, request, group_pk, user_pk):
         """Send group invitation to user. Path parameters: group_pk, user_pk"""
         group = get_object_or_404(UserGroup, pk=group_pk)
-        receiver = get_object_or_404(get_user_model(), pk=user_pk)
+        recipient = get_object_or_404(get_user_model(), pk=user_pk)
         self.check_object_permissions(request, group)
-        if receiver in group.members.all():
+        if recipient in group.members.all():
             return Response(
                 {"message": "user already a member of the group"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
         invitation = GroupInvitation(
-            sender=request.user, receiver=receiver, group=group
+            sender=request.user, recipient=recipient, group=group
         )
         invitation.save()
 
@@ -258,7 +258,7 @@ class InvitationsListView(AbstractInvitationListView):
             "group": GroupInvitation,
         }
 
-        if invite_type not in queryset_dict:
+        if invite_type not in invite_type_dict:
             raise ValidationError(
                 detail="invite_type is required and must be 'friend' or 'group"
             )

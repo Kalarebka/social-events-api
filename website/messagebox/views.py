@@ -6,7 +6,7 @@ from rest_framework.response import Response
 
 from .db_helpers import get_message_thread
 from .models import Message, MessageThread
-from .permissions import MessageSenderOrReceiver, MessageThreadOwner
+from .permissions import MessageSenderOrrecipient, MessageThreadOwner
 from .serializers import MessageSerializer, MessageThreadSerializer
 
 
@@ -30,7 +30,7 @@ class MessageListView(ListCreateAPIView):
         category_filters = {
             "sent": self.request.user.sent_messages.filter(deleted_by_sender=False),
             "received": self.request.user.received_messages.filter(
-                deleted_by_receiver=False
+                deleted_by_recipient=False
             ),
         }
         return category_filters[category]
@@ -44,11 +44,11 @@ class MessageDetailView(RetrieveDestroyAPIView):
 
     queryset = Message.objects.all()
     serializer_class = MessageSerializer
-    permission_classes = [MessageSenderOrReceiver]
+    permission_classes = [MessageSenderOrrecipient]
 
     def retrieve(self, request, *args, **kwargs):
         instance = self.get_object()
-        if instance.read_status is False and request.user == instance.receiver:
+        if instance.read_status is False and request.user == instance.recipient:
             instance.read_status = True
             instance.save()
         serializer = self.get_serializer(instance)
@@ -58,7 +58,7 @@ class MessageDetailView(RetrieveDestroyAPIView):
         if instance.sender == self.request.user:
             instance.deleted_by_sender = True
         else:
-            instance.deleted_by_receiver = True
+            instance.deleted_by_recipient = True
         instance.save()
 
 

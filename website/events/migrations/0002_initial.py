@@ -34,7 +34,7 @@ class Migration(migrations.Migration):
         ),
         migrations.AddField(
             model_name="eventinvitation",
-            name="receiver",
+            name="recipient",
             field=models.ForeignKey(
                 on_delete=django.db.models.deletion.CASCADE,
                 related_name="%(app_label)s_%(class)s_received",

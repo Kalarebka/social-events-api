@@ -4,18 +4,18 @@ from .models import Message, MessageThread
 
 
 class MessageAdmin(admin.ModelAdmin):
-    list_display = ("title", "date_sent", "sender_username", "receiver_username")
-    list_filter = ("sender", "receiver")
-    search_fields = ("title", "sender__username", "receiver__username")
+    list_display = ("title", "date_sent", "sender_username", "recipient_username")
+    list_filter = ("sender", "recipient")
+    search_fields = ("title", "sender__username", "recipient__username")
 
     def sender_username(self, obj):
         return obj.sender.username
 
-    def receiver_username(self, obj):
-        return obj.receiver.username
+    def recipient_username(self, obj):
+        return obj.recipient.username
 
     sender_username.short_description = "From:"
-    receiver_username.short_description = "To:"
+    recipient_username.short_description = "To:"
 
 
 class MessageInline(admin.TabularInline):

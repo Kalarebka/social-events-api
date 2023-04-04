@@ -72,7 +72,7 @@ class FriendInvitationSerializer(serializers.ModelSerializer):
         fields = [
             "id",
             "sender",
-            "receiver",
+            "recipient",
             "date_sent",
             "response_received",
             "confirmed",
@@ -85,7 +85,7 @@ class GroupInvitationSerializer(serializers.ModelSerializer):
         fields = [
             "id",
             "sender",
-            "receiver",
+            "recipient",
             "group",
             "date_sent",
             "response_received",

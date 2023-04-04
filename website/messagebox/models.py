@@ -31,7 +31,7 @@ class Message(models.Model):
         null=True,
         related_name="sent_messages",
     )
-    receiver = models.ForeignKey(
+    recipient = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
         null=True,
@@ -43,7 +43,7 @@ class Message(models.Model):
     read_status = models.BooleanField(default=False)
     date_read = models.DateTimeField(default=None, null=True, blank=True)
     deleted_by_sender = models.BooleanField(default=False)
-    deleted_by_receiver = models.BooleanField(default=False)
+    deleted_by_recipient = models.BooleanField(default=False)
     thread = models.ForeignKey(
         MessageThread, on_delete=models.CASCADE, related_name="messages"
     )
@@ -53,4 +53,4 @@ class Message(models.Model):
         ordering = ["-date_sent"]
 
     def __str__(self):
-        return f"{self.sender.username} to {self.receiver.username}: {self.title}"
+        return f"{self.sender.username} to {self.recipient.username}: {self.title}"

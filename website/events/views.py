@@ -1,21 +1,25 @@
 from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
-from invitations.tasks import send_invitation_email
-from invitations.views import (
-    AbstractInvitationDetailView,
-    AbstractInvitationResponseView,
-)
+
 from rest_framework import status
 from rest_framework.generics import (
     CreateAPIView,
-    ListAPIView,
     ListCreateAPIView,
+    RetrieveDestroyAPIView,
     RetrieveUpdateDestroyAPIView,
 )
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
+
+from invitations.tasks import send_invitation_email
+from invitations.views import (
+    AbstractInvitationDetailView,
+    AbstractInvitationResponseView,
+    AbstractEmailInvitationResponseView,
+    AbstractInvitationListView,
+)
 
 from .models import Event, EventInvitation
 from .permissions import EventPermission
@@ -54,15 +58,15 @@ class EventParticipantDetailView(APIView):
         """Send event invitation to user. Path parameters: event_pk, user_pk."""
         event = get_object_or_404(Event, pk=event_pk)
         self.check_object_permissions(request, event)
-        receiver = get_object_or_404(get_user_model(), pk=user_pk)
-        if receiver in event.participants.all():
+        recipient = get_object_or_404(get_user_model(), pk=user_pk)
+        if recipient in event.participants.all():
             return Response(
                 {"message": "user already invited to the event"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
         # Create invitation
         invitation = EventInvitation(
-            sender=request.user, receiver=receiver, event=event
+            sender=request.user, recipient=recipient, event=event
         )
         invitation.save()
 
@@ -144,35 +148,34 @@ class EventOrganiserDetailView(APIView):
         )
 
 
-class EventInvitationsListView(ListAPIView):
+class EventInvitationsListView(AbstractInvitationListView):
     """
     GET - list of event invitations
     query parameter:
-    - category: sent/received (default: received)
-    Sent - invitations sent by the user
-    Received - current user's received invitations without response
+    - category:
+      -> sent - invitations sent by the user
+      -> received (default) - current user's received invitations without response
     """
 
     serializer_class = EventInvitationSerializer
 
-    def get_queryset(self):
-        user = self.request.user
-
-        category = self.request.query_params.get("category")
-        if category == "sent":
-            return EventInvitation.filter(sender=user)
-        return EventInvitation.filter(receiver=user, response_received=False)
+    def get_invitation_model(self):
+        return EventInvitation
 
 
 class EventInvitationDetailView(AbstractInvitationDetailView):
-    def get_serializer(self, qs):
-        return EventInvitationSerializer(qs)
+    serializer_class = EventInvitationSerializer
 
     def get_invitation_model(self):
         return EventInvitation
 
 
 class EventInvitationResponseView(AbstractInvitationResponseView):
+    def get_invitation_model(self):
+        return EventInvitation
+
+
+class EventInvitationEmailResponseView(AbstractEmailInvitationResponseView):
     def get_invitation_model(self):
         return EventInvitation
 
@@ -188,26 +191,48 @@ class LocationsListView(ListCreateAPIView):
         return self.request.user.saved_locations.all()
 
 
-class LocationDetailView(RetrieveUpdateDestroyAPIView):
+class LocationDetailView(RetrieveUpdateDestroyAPIView):  # TODO
     """
-    User's saved location detail view
+    Location detail view
+
+    All users can see location details, the user who saved the location can edit and delete it.
+    POST - copy the location to own saved locations
     """
 
-    # TODO permission that checks if location.saved_by == request.user
+    # TODO permission that checks if location.saved_by == request.user for edit and delete
     permission_classes = []
     serializer_class = LocationSerializer
 
 
-class RecurrenceScheduleListView(CreateAPIView):
-    """Create schedules for recurring events"""
+class RecurrenceScheduleListView(CreateAPIView):  # TODO
+    """
+    Create a schedule for recurring events
 
-    # TODO Change to creating schedule from existing event
+    When a schedule is created, event occurrences are created based on the base event and schedule
+    """
 
     serializer_class = RecurringEventScheduleSerializer
 
 
-class CalendarView(APIView):
-    # Get events confirmed by the user, filtered by day/month/year
-    # with basic data about the event and links to event details
+class RecurrenceScheduleDetailView(RetrieveDestroyAPIView):  # TODO
+    """
+    Single recurrence schedule
+
+    GET - retrieve schedule details and list of scheduled events
+    DELETE - cancel all events except base event
+
+    """
+
+    pass
+
+
+class CalendarView(APIView):  # TODO
+    """Get user's events
+
+    - filtered by day/month/year
+    - minimal or full info about the event
+    - confirmed or invited (or both??? in nested lists)
+    """
+
     def get(self):
         pass

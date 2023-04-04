@@ -19,19 +19,19 @@ class MessageTests(APITestCase):
         )
         cls.message1 = Message.objects.create(
             sender=user1,
-            receiver=user2,
+            recipient=user2,
             title="Message Title",
             content="some message content 1",
         )
         cls.message2 = Message.objects.create(
             sender=user1,
-            receiver=user2,
+            recipient=user2,
             title="Message Title",
             content="some message content 2",
         )
         cls.message3 = Message.objects.create(
             sender=user2,
-            receiver=user1,
+            recipient=user1,
             title="Message Title",
             content="some message content 3",
         )
@@ -53,7 +53,7 @@ class MessageTests(APITestCase):
         response = self.client.get(url, {"category": "received"})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data["results"]), 1)
-        self.assertEqual(response.data["results"][0]["receiver"], self.user.pk)
+        self.assertEqual(response.data["results"][0]["recipient"], self.user.pk)
 
     def test_messages_list_view_without_category_parameter(self):
         # Should default to received messages
@@ -61,4 +61,4 @@ class MessageTests(APITestCase):
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data["results"]), 1)
-        self.assertEqual(response.data["results"][0]["receiver"], self.user.pk)
+        self.assertEqual(response.data["results"][0]["recipient"], self.user.pk)

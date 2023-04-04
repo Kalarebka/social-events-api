@@ -27,7 +27,7 @@ class Migration(migrations.Migration):
                 ("date_sent", models.DateTimeField(auto_now_add=True)),
                 ("read_status", models.BooleanField(default=False)),
                 ("deleted_by_sender", models.BooleanField(default=False)),
-                ("deleted_by_receiver", models.BooleanField(default=False)),
+                ("deleted_by_recipient", models.BooleanField(default=False)),
             ],
             options={
                 "ordering": ["-date_sent"],

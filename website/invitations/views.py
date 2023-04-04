@@ -12,7 +12,7 @@ class InvitationListView(AbstractInvitationListView):
     """
     List BasicInvitations for current user
 
-    Uses basic invitation permissions - invitation sender and receiver have object permission.
+    Uses basic invitation permissions - invitation sender and recipient have object permission.
     Query parameters:
     - category: "received" (default) or "sent"
     """
@@ -28,7 +28,7 @@ class EmailInvitationListView(AbstractInvitationListView):
     """
     List BasicEmailInvitations for current user
 
-    Uses basic invitation permissions - invitation sender and receiver have object permission.
+    Uses basic invitation permissions - invitation sender and recipient have object permission.
     Query parameters:
     - category: "received" (default) or "sent"
     """

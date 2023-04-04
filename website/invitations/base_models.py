@@ -19,7 +19,7 @@ class AbstractInvitation(models.Model):
         null=True,
         related_name="%(app_label)s_%(class)s_sent",
     )
-    receiver = models.ForeignKey(
+    recipient = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         related_name="%(app_label)s_%(class)s_received",

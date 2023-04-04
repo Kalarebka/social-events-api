@@ -2,6 +2,7 @@ from dateutil.rrule import rrule
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import models
+from django.urls import reverse
 from invitations.base_models import AbstractEmailInvitation
 from users.models import UserGroup
 
@@ -49,7 +50,7 @@ class Event(models.Model):
         settings.AUTH_USER_MODEL,
         related_name="events",
         through="EventInvitation",
-        through_fields=("event", "receiver"),
+        through_fields=("event", "recipient"),
     )
     recurrence_schedule = models.ForeignKey(
         "RecurringEventSchedule",
@@ -86,7 +87,21 @@ class RecurringEventSchedule(models.Model):
 
     def schedule_events(self):
         """Create events according to the schedule with schedule foreign key set to self"""
-        # need to figure out how to do invitations/responses to recurring events first
+        base = self.base_event
+        event_length = base.end_time - base.start_time
+
+        for start_time in self.calculate_dates_to_schedule:
+            end_time = start_time + event_length
+            new_event = Event(
+                event_type=base.event_type,
+                name=base.name,
+                description=base.description,
+                start_time=start_time,
+                end_time=end_time,
+                location=base.location,
+                group=base.group,
+            )
+
         pass
 
     def calculate_dates_to_schedule(self):
@@ -130,17 +145,24 @@ class EventInvitation(AbstractEmailInvitation):
         related_name="invited_users",
     )
 
-    def confirm(self):
-        if self.event.recurrence_schedule:
-            # TODO add user as confirmed to all events in the schedule
-            pass
+    def confirm(self):  # TODO
+        """
+        Add user as confirmed to the event.
+
+        For recurring events, add user to all events in the schedule
+        """
+        recurrence_schedule = self.event.recurrence_schedule
+        if recurrence_schedule:
+
+            for occurrence in recurrence_schedule.events:
+                occurrence.invited_users.add(self.recipient)
 
     def get_email_template(self) -> str:
         return "invitation_emails/event_invitation.html"
 
     def get_email_data(self):
         data = {}
-        data["receiver_name"] = self.receiver.username
+        data["recipient_name"] = self.recipient.username
         data["event_name"] = self.event.name
         data["confirm_url"] = self.get_response_url("accept")
         data["decline_url"] = self.get_response_url("decline")
@@ -151,9 +173,12 @@ class EventInvitation(AbstractEmailInvitation):
 
     def get_recipient_list(self):
         return [
-            self.receiver.email,
+            self.recipient.email,
         ]
 
-    def get_response_url(self):
-        # TODO
-        pass
+    def get_response_url(self, invitation_response):
+        url = reverse("events:invitation_email_response")
+        response_url = (
+            f"{url}?token={self.email_response_token}&response={invitation_response}"
+        )
+        return response_url

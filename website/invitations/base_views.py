@@ -15,7 +15,7 @@ class AbstractInvitationListView(ABC, ListAPIView):
 
     Additionally, you need to set the 'serializer_class' attribute or override 'get_serializer_class' method
 
-    Uses basic invitation permissions - invitation sender and receiver have object permission.
+    Uses basic invitation permissions - invitation sender and recipient have object permission.
     Returns received messages by default, category can be chosen with a query parameter:
     - category: "received" (default) or "sent"
     """
@@ -28,14 +28,14 @@ class AbstractInvitationListView(ABC, ListAPIView):
         pass
 
     def get_queryset(self):
-        # Returns a list of invitations in which request.user is sender or receiver
+        # Returns a list of invitations in which request.user is sender or recipient
         qs = self.get_invitation_model().objects.all()
         user = self.request.user
 
         category = self.request.query_params.get("category")
         if category == "sent":
             return qs.filter(sender=user)
-        return qs.filter(receiver=user, response_received=False)
+        return qs.filter(recipient=user, response_received=False)
 
 
 class AbstractInvitationDetailView(ABC, RetrieveDestroyAPIView):
@@ -85,7 +85,7 @@ class AbstractInvitationResponseView(ABC, APIView):
 
     def post(self, request, pk):
         invitation = get_object_or_404(self.get_invitation_model(), pk=pk)
-        if request.user != invitation.receiver:
+        if request.user != invitation.recipient:
             return Response(
                 {"detail": "You're not allowed to respond to this invitation"},
                 status=status.HTTP_403_FORBIDDEN,

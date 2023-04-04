@@ -180,7 +180,7 @@ class Migration(migrations.Migration):
                     ),
                 ),
                 (
-                    "receiver",
+                    "recipient",
                     models.ForeignKey(
                         on_delete=django.db.models.deletion.CASCADE,
                         related_name="%(app_label)s_%(class)s_received",
@@ -218,7 +218,7 @@ class Migration(migrations.Migration):
                 ("date_sent", models.DateTimeField(auto_now_add=True)),
                 ("email_response_token", models.CharField(max_length=32, unique=True)),
                 (
-                    "receiver",
+                    "recipient",
                     models.ForeignKey(
                         on_delete=django.db.models.deletion.CASCADE,
                         related_name="%(app_label)s_%(class)s_received",

@@ -6,7 +6,7 @@ from .models import BasicEmailInvitation, BasicInvitation
 
 class BasicInvitationSerializer(serializers.ModelSerializer):
     sender = serializers.PrimaryKeyRelatedField(queryset=get_user_model().objects.all())
-    receiver = serializers.PrimaryKeyRelatedField(
+    recipient = serializers.PrimaryKeyRelatedField(
         queryset=get_user_model().objects.all()
     )
 
@@ -15,7 +15,7 @@ class BasicInvitationSerializer(serializers.ModelSerializer):
         fields = [
             "id",
             "sender",
-            "receiver",
+            "recipient",
             "confirmed",
             "response_received",
             "date_sent",

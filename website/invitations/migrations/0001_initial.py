@@ -23,7 +23,7 @@ class Migration(migrations.Migration):
                     ),
                 ),
                 ("sender", models.EmailField(max_length=254)),
-                ("receiver", models.EmailField(max_length=254)),
+                ("recipient", models.EmailField(max_length=254)),
                 ("confirm_url", models.URLField()),
                 ("decline_url", models.URLField()),
                 ("subject", models.CharField(max_length=200)),

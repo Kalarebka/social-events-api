@@ -28,7 +28,7 @@ class BasicEmailInvitation(AbstractEmailInvitation):
     def get_email_data(self):
         data = {}
         data["sender_name"] = self.sender.username
-        data["receiver_name"] = self.receiver.username
+        data["recipient_name"] = self.recipient.username
         data["accept_url"] = self.get_response_url("accept")
         data["decline_url"] = self.get_response_url("decline")
         return data
@@ -38,7 +38,7 @@ class BasicEmailInvitation(AbstractEmailInvitation):
 
     def get_recipient_list(self):
         return [
-            self.receiver.email,
+            self.recipient.email,
         ]
 
     def get_response_url(self, invitation_response):

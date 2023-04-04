@@ -17,7 +17,7 @@ class Migration(migrations.Migration):
     operations = [
         migrations.AddField(
             model_name="message",
-            name="receiver",
+            name="recipient",
             field=models.ForeignKey(
                 null=True,
                 on_delete=django.db.models.deletion.SET_NULL,

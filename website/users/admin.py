@@ -53,7 +53,7 @@ class UserGroupAdmin(admin.ModelAdmin):
 class FriendInvitationAdmin(admin.ModelAdmin):
     list_display = (
         "sender",
-        "receiver",
+        "recipient",
         "confirmed",
         "response_received",
         "date_sent",
@@ -61,7 +61,7 @@ class FriendInvitationAdmin(admin.ModelAdmin):
     )
     search_fields = (
         "sender__username",
-        "receiver__username",
+        "recipient__username",
     )
 
     def status(self, obj):
@@ -78,7 +78,7 @@ class FriendInvitationAdmin(admin.ModelAdmin):
 class GroupInvitationAdmin(admin.ModelAdmin):
     list_display = (
         "group",
-        "receiver",
+        "recipient",
         "confirmed",
         "response_received",
         "date_sent",
@@ -86,7 +86,7 @@ class GroupInvitationAdmin(admin.ModelAdmin):
     )
     search_fields = (
         "group__name",
-        "receiver__username",
+        "recipient__username",
     )
 
     def status(self, obj):

@@ -1,11 +1,11 @@
 from django.db.models.signals import post_save
-from django.dispatch import receiver
+from django.dispatch import recipient
 
 from .models import Event
 from .tasks import update_event_status
 
 
-@receiver(post_save, sender=Event)
+@recipient(post_save, sender=Event)
 def set_update_event_status_task(
     sender, instance, created, update_fields=None, **kwargs
 ):

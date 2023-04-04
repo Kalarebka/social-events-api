@@ -1,11 +1,11 @@
 from rest_framework.permissions import BasePermission
 
 
-class MessageSenderOrReceiver(BasePermission):
-    """Limits access to message to sender and receiver"""
+class MessageSenderOrrecipient(BasePermission):
+    """Limits access to message to sender and recipient"""
 
     def has_object_permission(self, request, view, obj):
-        if (obj.receiver == request.user) or (obj.sender == request.user):
+        if (obj.recipient == request.user) or (obj.sender == request.user):
             return True
         return False
 
