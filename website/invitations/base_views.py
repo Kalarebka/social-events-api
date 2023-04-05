@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from builtins import NotImplementedError
 
 from django.shortcuts import get_object_or_404
 from rest_framework import status
@@ -9,7 +10,27 @@ from rest_framework.views import APIView
 from .permissions import InvitationsPermission
 
 
-class AbstractInvitationListView(ABC, ListAPIView):
+class AbstractInvitationViewBase(ABC):
+    """
+    Abstract base that provides invitation model attribute and method for other views.
+
+    Set invitation_model attribute or override get_invitation_model (defaults to self.invitation_model)
+
+    """
+
+    invitation_model = None
+
+    def get_invitation_model(self):
+        """Return concrete invitation model. Defaults to self.invitation_model."""
+        if self.invitation_model:
+            return self.invitation_model
+        raise NotImplementedError(
+            "The view should either include an invitation_model attribute, "
+            "or override the get_invitation_model() method."
+        )
+
+
+class AbstractInvitationListView(AbstractInvitationViewBase, ListAPIView):
     """
     Abstract base for a list view for invitations.
 
@@ -22,11 +43,6 @@ class AbstractInvitationListView(ABC, ListAPIView):
 
     permission_classes = [InvitationsPermission]
 
-    @abstractmethod
-    def get_invitation_model(self):
-        """Return concrete invitation model"""
-        pass
-
     def get_queryset(self):
         # Returns a list of invitations in which request.user is sender or recipient
         qs = self.get_invitation_model().objects.all()
@@ -38,7 +54,7 @@ class AbstractInvitationListView(ABC, ListAPIView):
         return qs.filter(recipient=user, response_received=False)
 
 
-class AbstractInvitationDetailView(ABC, RetrieveDestroyAPIView):
+class AbstractInvitationDetailView(AbstractInvitationViewBase, RetrieveDestroyAPIView):
     """Handle different types of invitations.
     GET - get single invitation details
     DELETE - delete the invitation (only in response not received)
@@ -47,11 +63,6 @@ class AbstractInvitationDetailView(ABC, RetrieveDestroyAPIView):
     """
 
     permission_classes = [InvitationsPermission]
-
-    @abstractmethod
-    def get_invitation_model(self):
-        """Return concrete invitation model"""
-        pass
 
     def get_queryset(self):
         return self.get_invitation_model().objects.all()
@@ -71,17 +82,12 @@ class AbstractInvitationDetailView(ABC, RetrieveDestroyAPIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-class AbstractInvitationResponseView(ABC, APIView):
+class AbstractInvitationResponseView(AbstractInvitationViewBase, APIView):
     """
     Receive response to an invitation through a POST request
 
     Query parameter: response ("accept"/"decline")
     """
-
-    @abstractmethod
-    def get_invitation_model(self):
-        """Return concrete invitation model"""
-        pass
 
     def post(self, request, pk):
         invitation = get_object_or_404(self.get_invitation_model(), pk=pk)
@@ -102,7 +108,7 @@ class AbstractInvitationResponseView(ABC, APIView):
         return Response(status=status.HTTP_200_OK)
 
 
-class AbstractEmailInvitationResponseView(ABC, APIView):
+class AbstractEmailInvitationResponseView(AbstractInvitationViewBase, APIView):
     """
     Receive response to an invitation through a GET request (for use in emails)
 
@@ -110,11 +116,6 @@ class AbstractEmailInvitationResponseView(ABC, APIView):
     - response ("accept"/"decline")
     - token - authorization token to compare with invitation's email_response_token attribute
     """
-
-    @abstractmethod
-    def get_invitation_model(self):
-        """Return concrete invitation model"""
-        pass
 
     def get(self, request, pk):
         invitation = get_object_or_404(self.get_invitation_model(), pk=pk)

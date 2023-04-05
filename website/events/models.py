@@ -145,17 +145,24 @@ class EventInvitation(AbstractEmailInvitation):
         related_name="invited_users",
     )
 
-    def confirm(self):  # TODO
+    def confirm(self):
         """
         Add user as confirmed to the event.
 
-        For recurring events, add user to all events in the schedule
+        For recurring events, add user to all events in the schedule (create invitations already confirmed)
         """
         recurrence_schedule = self.event.recurrence_schedule
         if recurrence_schedule:
 
             for occurrence in recurrence_schedule.events:
-                occurrence.invited_users.add(self.recipient)
+                invitation = EventInvitation(
+                    sender=self.sender,
+                    recipient=self.recipient,
+                    event=occurrence,
+                    confirmed=True,
+                    response_received=True,
+                )
+                invitation.save()
 
     def get_email_template(self) -> str:
         return "invitation_emails/event_invitation.html"
