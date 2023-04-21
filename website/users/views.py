@@ -1,12 +1,6 @@
 from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
-from invitations.tasks import send_invitation_email
-from invitations.base_views import (
-    AbstractInvitationDetailView,
-    AbstractInvitationResponseView,
-    AbstractEmailInvitationResponseView,
-    AbstractInvitationListView,
-)
+
 from rest_framework import status
 from rest_framework.exceptions import ValidationError
 from rest_framework.generics import (
@@ -17,6 +11,13 @@ from rest_framework.generics import (
 )
 from rest_framework.response import Response
 from rest_framework.views import APIView
+
+from invitations.base_views import (
+    AbstractInvitationDetailView,
+    AbstractInvitationResponseView,
+    AbstractEmailInvitationResponseView,
+    AbstractInvitationListView,
+)
 
 from .models import FriendInvitation, GroupInvitation, UserGroup
 from .permissions import OwnProfileOrReadOnly, UserGroupPermission
@@ -78,6 +79,9 @@ class FriendDetailView(APIView):
             )
         invitation = FriendInvitation(sender=request.user, recipient=recipient)
         invitation.save()
+
+        # Send invitation email #TODO
+
         return Response(
             {"message": "invitation sent"},
             status=status.HTTP_201_CREATED,
@@ -163,8 +167,8 @@ class GroupMembersDetailView(APIView):
         )
         invitation.save()
 
-        # Set celery task to send invitation email
-        send_invitation_email.delay(invitation)
+        # Set celery task to send invitation email #TODO
+        # send_invitation_email.delay(invitation)
 
         return Response(
             {"message": "invitation sent"},

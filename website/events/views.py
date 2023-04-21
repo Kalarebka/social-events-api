@@ -13,7 +13,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
 
-from invitations.tasks import send_invitation_email
+
 from invitations.views import (
     AbstractInvitationDetailView,
     AbstractInvitationResponseView,
@@ -70,8 +70,8 @@ class EventParticipantDetailView(APIView):
         )
         invitation.save()
 
-        # Set celery task to send invitation email
-        send_invitation_email.delay(invitation)
+        # Set celery task to send invitation email #TODO
+        # send_invitation_email.delay(invitation)
 
         return Response(
             {"message": "invitation sent"},

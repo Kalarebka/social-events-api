@@ -22,7 +22,7 @@ class AbstractInvitationViewBase(ABC):
 
     def get_invitation_model(self):
         """Return concrete invitation model. Defaults to self.invitation_model."""
-        if self.invitation_model:
+        if self.invitation_model is not None:
             return self.invitation_model
         raise NotImplementedError(
             "The view should either include an invitation_model attribute, "
@@ -94,7 +94,7 @@ class AbstractInvitationResponseView(AbstractInvitationViewBase, APIView):
         if request.user != invitation.recipient:
             return Response(
                 {"detail": "You're not allowed to respond to this invitation"},
-                status=status.HTTP_403_FORBIDDEN,
+                status=status.HTTP_401_UNAUTHORIZED,
             )
 
         invitation_response = request.query_params.get("response", None)
@@ -124,7 +124,7 @@ class AbstractEmailInvitationResponseView(AbstractInvitationViewBase, APIView):
         # Check if the right token is provided
         if token != invitation.email_response_token:
             return Response(
-                {"detail": "invalid token"}, status=status.HTTP_403_FORBIDDEN
+                {"detail": "invalid token"}, status=status.HTTP_401_UNAUTHORIZED
             )
 
         invitation_response = request.query_params.get("response", None)

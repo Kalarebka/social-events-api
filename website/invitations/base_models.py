@@ -54,7 +54,7 @@ class AbstractEmailInvitation(AbstractInvitation):
 
     def save(self, *args, **kwargs):
         if self._state.adding:
-            self.token = uuid4().hex
+            self.email_response_token = uuid4().hex
         super().save(*args, **kwargs)
 
     class Meta:

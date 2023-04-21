@@ -5,7 +5,7 @@ from django.core.mail import EmailMessage
 from django.template.loader import render_to_string
 
 from .models import AbstractEmailInvitation
-from .tasks import send_email_task, send_batch_email_task
+from .tasks import send_batch_email_task, send_email_task
 
 
 class EmailInvitationSender:
@@ -34,7 +34,7 @@ class EmailInvitationSender:
 
     def send_invitation(self, invitation: AbstractEmailInvitation):
         email = self.create_invitation_email(invitation)
-        send_email_task.delay(email=email, backend=self.backend)
+        send_email_task.delay(email=email, backend=self.email_backend)
 
     def send_batch_invitation_email(
         self, invitation_list: List[AbstractEmailInvitation]
@@ -43,4 +43,6 @@ class EmailInvitationSender:
         for invitation in invitation_list:
             email = self.create_invitation_email(invitation)
             email_messages.append(email)
-        send_batch_email_task.delay(email_list=email_messages, backend=self.backend)
+        send_batch_email_task.delay(
+            email_list=email_messages, backend=self.email_backend
+        )
